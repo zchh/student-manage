@@ -163,6 +163,9 @@ describe("服务规格", () => {
     await expect(service.updateSession(store, teacher, another.id, { status: "教师请假" })).rejects.toMatchObject({
       code: "SPEC-SESSION-02",
     });
+    await expect(service.editSession(store, teacher, another.id, {
+      weekday: "周六", sessionDate: "2026-11-21", timeRange: "10:00-11:00", topic: "练习", status: "教师请假",
+    })).rejects.toMatchObject({ code: "SPEC-SESSION-02" });
   });
 
   it("没有签到的课时可以删除，已签到的不能删除", async () => {
@@ -184,6 +187,32 @@ describe("服务规格", () => {
     await service.submitAttendance(store, teacher, signed.id, [{ studentId: student.id, status: "已到", remark: "" }]);
     await expect(service.deleteSession(store, teacher, signed.id)).rejects.toMatchObject({ code: "SPEC-SESSION-02" });
     await expect(service.deleteSession(store, advisor, open.id)).rejects.toMatchObject({ code: "SPEC-PERM-02" });
+  });
+
+  it("编辑课时时，同一天的时间段不能与本班其他课时重合", async () => {
+    const { store, advisor, teacher } = await demoStore();
+    const classGroup = await service.createClass(store, advisor, { name: "钢琴A", teacherId: 1, courseTypeId: 1 });
+    const kept = await service.createSession(store, teacher, classGroup.id, {
+      weekday: "周六", sessionDate: "2026-11-14", timeRange: "10:00-11:00", topic: "音阶", remark: "",
+    });
+    const editing = await service.createSession(store, teacher, classGroup.id, {
+      weekday: "周六", sessionDate: "2026-11-21", timeRange: "14:00-15:00", topic: "练习", remark: "保留",
+    });
+    await expect(service.editSession(store, teacher, editing.id, {
+      weekday: "周六", sessionDate: "2026-11-14", timeRange: "10:30-11:30", topic: "改期",
+    })).rejects.toMatchObject({ code: "SPEC-SESSION-03" });
+    const moved = await service.editSession(store, teacher, editing.id, {
+      weekday: "周六", sessionDate: "2026-11-14", timeRange: "11:00-12:00", topic: "改期",
+    });
+    expect(moved).toMatchObject({ sessionDate: "2026-11-14", timeRange: "11:00-12:00", topic: "改期", remark: "保留", status: "待上课" });
+    const finished = await service.editSession(store, teacher, editing.id, {
+      weekday: "周六", sessionDate: "2026-11-14", timeRange: "11:00-12:00", topic: "改期", status: "已完成",
+    });
+    expect(finished.status).toBe("已完成");
+    expect(kept.timeRange).toBe("10:00-11:00");
+    await expect(service.editSession(store, advisor, editing.id, {
+      weekday: "周六", sessionDate: "2026-11-28", timeRange: "10:00-11:00", topic: "练习",
+    })).rejects.toMatchObject({ code: "SPEC-PERM-02" });
   });
 
   it("未买课的试听学生可以登记消费，并变为已买课", async () => {

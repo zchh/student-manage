@@ -142,6 +142,9 @@ export function createApp(store: Store) {
   app.post("/api/teacher/classes/:id/sessions", asyncRoute(async (req, res) => {
     res.status(201).json(await service.createSession(store, req.actor!, Number(req.params.id), req.body));
   }));
+  app.put("/api/teacher/sessions/:id", asyncRoute(async (req, res) => {
+    res.json(await service.editSession(store, req.actor!, Number(req.params.id), req.body));
+  }));
   app.patch("/api/teacher/sessions/:id", asyncRoute(async (req, res) => {
     res.json(await service.updateSession(store, req.actor!, Number(req.params.id), req.body));
   }));

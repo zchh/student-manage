@@ -123,11 +123,11 @@ export default function AttendancePage() {
       {!sheet && (
         <>
         <table>
-          <thead><tr><th>周几</th><th>日期</th><th>课时</th><th>备注</th><th>操作</th></tr></thead>
+          <thead><tr><th>周几</th><th>日期</th><th>课时</th><th>操作</th></tr></thead>
           <tbody>
             {sessionPager.slice.map((row) => (
               <tr key={row.id}>
-                <td>{row.weekday}</td><td>{row.sessionDate}</td><td>{row.timeRange}</td><td>{row.remark}</td>
+                <td>{row.weekday}</td><td>{row.sessionDate}</td><td>{row.timeRange}</td>
                 <td><button onClick={() => openSheet(row.id).catch((reason) => setError(reason.message))}>签到</button></td>
               </tr>
             ))}

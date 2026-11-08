@@ -377,8 +377,8 @@ export async function createMysqlStore(): Promise<Store> {
     },
     updateSession: async (row) => {
       await pool.query(
-        `UPDATE class_sessions SET status=?, remark=?, updated_at=?, updated_by=? WHERE id=?`,
-        [row.status, row.remark, row.updatedAt, row.updatedBy, row.id],
+        `UPDATE class_sessions SET time_range=?, topic=?, status=?, weekday=?, session_date=?, remark=?, updated_at=?, updated_by=? WHERE id=?`,
+        [row.timeRange, row.topic, row.status, row.weekday, row.sessionDate, row.remark, row.updatedAt, row.updatedBy, row.id],
       );
       return row;
     },

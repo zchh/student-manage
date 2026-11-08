@@ -85,10 +85,11 @@ npm test
 | SPEC-CLASS-03 | 创建班级时，教师自己的课程类型必须和班级课程类型一致。 |
 | SPEC-SESSION-01 | 教师只能为自己任教的班级创建课时。 |
 | SPEC-SESSION-02 | 课时状态为「教师请假」时不能签到。已有签到记录时不能再改成请假，也不能删除。 |
+| SPEC-SESSION-03 | 编辑课时时，同一天的时间段不能与本班其他课时交叉。首尾相接不算重合。 |
 | SPEC-ATTEND-01 | 该课程已完成课时为 0 的学生，签到页标为新生。 |
 | SPEC-STUDENT-01 | 已分班或已有签到的学生不能删除。 |
 
-课时状态只允许：待上课、教师请假、已完成。提交签到后，待上课变为已完成。
+课时状态只允许：待上课、教师请假、已完成。提交签到后，待上课变为已完成。编辑课时时也可以修改状态。
 
 ### 主路径
 
@@ -137,6 +138,7 @@ npm test
 | GET | `/api/teacher/classes` | 教师，只返回自己的班 |
 | GET | `/api/teacher/classes/:id/students` | 教师 |
 | GET/POST | `/api/teacher/classes/:id/sessions` | 教师。POST 创建课时 |
+| PUT | `/api/teacher/sessions/:id` | 教师，编辑日期、周几、时间段、主题和状态。与本班其他课时重合时拒绝。已有签到记录时不能改为请假 |
 | PATCH | `/api/teacher/sessions/:id` | 教师，修改状态 |
 | DELETE | `/api/teacher/sessions/:id` | 教师。已有签到记录时拒绝 |
 | GET/POST | `/api/teacher/sessions/:id/attendance` | 教师。POST 体：`{ items: [{ studentId, status, remark }] }` |
@@ -152,7 +154,7 @@ npm test
 | 消费记录 | `/advisor/purchases` | SPEC-HOUR-01、SPEC-HOUR-04 |
 | 学生 | `/advisor/students` | SPEC-STUDENT-01、课时合计 |
 | 班级 | `/advisor/classes` | SPEC-CLASS-01、SPEC-CLASS-02、SPEC-CLASS-03 |
-| 班级课时 | `/teacher/sessions` | SPEC-SESSION-01、SPEC-SESSION-02 |
+| 班级课时 | `/teacher/sessions` | SPEC-SESSION-01、SPEC-SESSION-02、SPEC-SESSION-03 |
 | 班级学生 | `/teacher/students` | 只读，含课时与顾问 |
 | 签到 | `/teacher/attendance` | SPEC-HOUR-02、SPEC-HOUR-03、SPEC-ATTEND-01 |
 

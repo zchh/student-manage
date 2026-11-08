@@ -469,6 +469,58 @@ export async function listSessions(store: Store, actor: Actor, classId: number) 
   return (await store.sessions()).filter((item) => item.classId === classId);
 }
 
+function clockRange(value: string): [string, string] {
+  const matched = value.match(/^(\d{2}:\d{2})-(\d{2}:\d{2})$/);
+  if (!matched || matched[1] >= matched[2]) {
+    throw new SpecError("SPEC-SESSION-03", "结束时间要晚于开始时间");
+  }
+  return [matched[1], matched[2]];
+}
+
+function rangesOverlap(left: [string, string], right: [string, string]) {
+  return left[0] < right[1] && right[0] < left[1];
+}
+
+const sessionStatuses = new Set<SessionStatus>(["待上课", "教师请假", "已完成"]);
+
+export async function editSession(
+  store: Store,
+  actor: Actor,
+  sessionId: number,
+  input: { weekday: string; sessionDate: string; timeRange: string; topic: string; remark?: string; status?: SessionStatus },
+) {
+  assertRole(actor.role, "teacher");
+  const session = (await store.sessions()).find((item) => item.id === sessionId);
+  if (!session) throw new SpecError("SPEC-SESSION-02", "课时不存在", 404);
+  ownClass(actor, session.teacherId);
+  if (!input.sessionDate || !input.weekday) throw new SpecError("SPEC-SESSION-03", "请选择日期");
+  const status = input.status ?? session.status;
+  if (!sessionStatuses.has(status)) throw new SpecError("SPEC-SESSION-02", "课时状态不正确");
+  if (status === "教师请假" && (await store.attendances()).some((item) => item.sessionId === sessionId)) {
+    throw new SpecError("SPEC-SESSION-02", "已有签到记录，不能改为请假");
+  }
+  const next = clockRange(input.timeRange ?? "");
+  const others = (await store.sessions()).filter(
+    (item) => item.classId === session.classId && item.id !== session.id && item.sessionDate === input.sessionDate,
+  );
+  for (const other of others) {
+    const matched = other.timeRange.match(/^(\d{2}:\d{2})-(\d{2}:\d{2})$/);
+    if (matched && rangesOverlap(next, [matched[1], matched[2]])) {
+      throw new SpecError("SPEC-SESSION-03", "该日期和时间段与已有课时重合");
+    }
+  }
+  return store.updateSession({
+    ...session,
+    weekday: input.weekday,
+    sessionDate: input.sessionDate,
+    timeRange: `${next[0]}-${next[1]}`,
+    topic: input.topic ?? "",
+    status,
+    remark: input.remark ?? session.remark,
+    ...touch(store, actor),
+  });
+}
+
 export async function updateSession(
   store: Store,
   actor: Actor,
