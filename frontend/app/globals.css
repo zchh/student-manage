@@ -25,7 +25,11 @@ nav a { display: block; padding: 8px 10px; border-radius: 6px; }
 nav a.active, nav a:hover { background: #34524b; }
 main { padding: 24px; overflow-x: auto; }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 8px 0; }
+.facts strong { font-weight: 700; }
 .panel { background: white; border: 1px solid #e2dacb; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.modal-mask { position: fixed; inset: 0; z-index: 20; display: flex; align-items: safe center; justify-content: safe center; padding: 24px; overflow: auto; background: rgba(28, 25, 21, 0.35); }
+.modal { width: min(420px, 100%); margin: auto; background: white; border: 1px solid #e2dacb; border-radius: 10px; padding: 16px; }
 .grid { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); gap: 10px; }
 label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 input, select, textarea { border: 1px solid #d5cbbd; border-radius: 6px; padding: 8px; background: white; }
@@ -41,6 +45,8 @@ th { background: #faf7f2; }
 .tag { color: #8a5a12; font-weight: 600; }
 .pager { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
 .pager input { width: 72px; }
+.checks { display: flex; gap: 12px; align-items: center; white-space: nowrap; }
+.checks label { flex-direction: row; align-items: center; gap: 4px; }
 .time-range { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; align-items: center; grid-column: span 2; }
 .time-range select { width: 72px; }
 .time-range .time-part { display: inline-flex; flex: 0 0 auto; gap: 4px; align-items: center; white-space: nowrap; }
