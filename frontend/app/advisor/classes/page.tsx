@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
@@ -14,6 +15,7 @@ interface ClassRow {
 interface Session { id: number; weekday: string; sessionDate: string; timeRange: string }
 
 export default function ClassesPage() {
+  const router = useRouter();
   const [rows, setRows] = useState<ClassRow[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [types, setTypes] = useState<Type[]>([]);
@@ -97,7 +99,10 @@ export default function ClassesPage() {
             <tr key={row.id}>
               <td>{row.name}</td><td>{row.courseTypeName}</td><td>{row.teacherId}</td><td>{row.teacherName}</td>
               <td>{row.teacherAvatar || "—"}</td><td>{row.teacherGender}</td><td>{row.studentCount}</td>
-              <td><button className="ghost" onClick={() => showSessions(row.id)}>课时查看</button></td>
+              <td>
+                <button className="ghost" onClick={() => router.push(`/advisor/students?classId=${row.id}`)}>学生信息</button>
+                <button className="ghost" onClick={() => showSessions(row.id)}>课时查看</button>
+              </td>
             </tr>
           ))}
         </tbody>

@@ -1,29 +1,47 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
 interface Student {
   id: number; studentNo: string; name: string; gender: string; birthDate: string;
-  phone: string; parentPhone: string; className: string; teacherId: number | null;
+  phone: string; parentPhone: string; classId: number | null; className: string; teacherId: number | null;
   teacherName: string; completedHours: number; remainingHours: number; low: boolean;
 }
+interface ClassOption { id: number; name: string }
 
 const empty = { name: "", gender: "男", birthDate: "", grade: "", phone: "", parentPhone: "" };
 
 export default function StudentsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [rows, setRows] = useState<Student[]>([]);
+  const [classes, setClasses] = useState<ClassOption[]>([]);
+  const [classId, setClassId] = useState(() => Number(searchParams.get("classId") || 0));
   const [keyword, setKeyword] = useState("");
   const [form, setForm] = useState(empty);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
-  const pager = usePager(rows);
+  const visible = classId ? rows.filter((item) => item.classId === classId) : rows;
+  const pager = usePager(visible);
 
   async function load(text = keyword) {
-    setRows(await api<Student[]>(`/api/students?keyword=${encodeURIComponent(text)}`));
+    const [studentList, classList] = await Promise.all([
+      api<Student[]>(`/api/students?keyword=${encodeURIComponent(text)}`),
+      api<ClassOption[]>("/api/classes"),
+    ]);
+    setRows(studentList);
+    setClasses(classList);
   }
   useEffect(() => { load("").catch((reason) => setError(reason.message)); }, []);
+
+  function chooseClass(id: number) {
+    setClassId(id);
+    pager.setPage(1);
+    router.replace(id ? `/advisor/students?classId=${id}` : "/advisor/students");
+  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -53,6 +71,10 @@ export default function StudentsPage() {
       <div className="top">
         <h1>学生</h1>
         <div>
+          <select aria-label="班级" value={classId} onChange={(event) => chooseClass(Number(event.target.value))}>
+            <option value={0}>全部班级</option>
+            {classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </select>
           <input placeholder="姓名或学号" value={keyword} onChange={(event) => setKeyword(event.target.value)} />
           <button className="ghost" onClick={() => load().catch((reason) => setError(reason.message))}>查询</button>
           <button onClick={() => setOpen(true)}>新增</button>
