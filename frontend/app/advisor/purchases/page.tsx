@@ -4,33 +4,37 @@ import { FormEvent, useEffect, useState } from "react";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
-interface Student { id: number; name: string }
 interface Type { id: number; name: string }
+interface TrialOption { id: number; studentName: string; phone: string; bought: boolean; courseTypeId: number }
 interface Purchase {
   id: number; studentName: string; advisorId: number; advisorName: string;
   amount: number; courseTypeName: string; hours: number; createdAt: string;
 }
 
+function trialLabel(item: TrialOption) {
+  return `${item.studentName}-${item.phone}`;
+}
+
 export default function PurchasesPage() {
   const [rows, setRows] = useState<Purchase[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
+  const [trials, setTrials] = useState<TrialOption[]>([]);
   const [types, setTypes] = useState<Type[]>([]);
   const [keyword, setKeyword] = useState("");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ studentId: 0, amount: 0, courseTypeId: 1, hours: 4 });
+  const [form, setForm] = useState({ trialId: 0, amount: 0, courseTypeId: 1, hours: 4 });
   const pager = usePager(rows);
+  const unpaid = trials.filter((item) => !item.bought);
 
   async function load(text = keyword) {
-    const [list, studentList, typeList] = await Promise.all([
+    const [list, trialList, typeList] = await Promise.all([
       api<Purchase[]>(`/api/purchases?keyword=${encodeURIComponent(text)}`),
-      api<Student[]>("/api/students"),
+      api<TrialOption[]>("/api/trials"),
       api<Type[]>("/api/course-types"),
     ]);
     setRows(list);
-    setStudents(studentList);
+    setTrials(trialList);
     setTypes(typeList);
-    if (!form.studentId && studentList[0]) setForm((current) => ({ ...current, studentId: studentList[0].id, courseTypeId: typeList[0]?.id ?? 1 }));
   }
   useEffect(() => { load("").catch((reason) => setError(reason.message)); }, []);
 
@@ -38,6 +42,10 @@ export default function PurchasesPage() {
     event.preventDefault();
     setError("");
     try {
+      if (!form.trialId) {
+        setError("没有未买课的试听学生");
+        return;
+      }
       await api("/api/purchases", { method: "POST", body: JSON.stringify(form) });
       setOpen(false);
       await load();
@@ -53,14 +61,22 @@ export default function PurchasesPage() {
         <div>
           <input placeholder="学生姓名" value={keyword} onChange={(event) => setKeyword(event.target.value)} />
           <button className="ghost" onClick={() => load().catch((reason) => setError(reason.message))}>查询</button>
-          <button onClick={() => setOpen(true)}>新增</button>
+          <button onClick={() => {
+            const first = unpaid[0];
+            setForm({ trialId: first?.id ?? 0, amount: 0, courseTypeId: first?.courseTypeId ?? types[0]?.id ?? 1, hours: 4 });
+            setOpen(true);
+          }}>新增</button>
         </div>
       </div>
       {error && <p className="error">{error}</p>}
       {open && (
         <form className="panel" onSubmit={onSubmit}>
           <div className="grid">
-            <label>学生<select value={form.studentId} onChange={(event) => setForm({ ...form, studentId: Number(event.target.value) })}>{students.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+            <label>学生<select value={form.trialId} onChange={(event) => {
+              const trialId = Number(event.target.value);
+              const trial = unpaid.find((item) => item.id === trialId);
+              setForm({ ...form, trialId, courseTypeId: trial?.courseTypeId ?? form.courseTypeId });
+            }}>{unpaid.map((item) => <option key={item.id} value={item.id}>{trialLabel(item)}</option>)}</select></label>
             <label>消费金额<input type="number" value={form.amount} onChange={(event) => setForm({ ...form, amount: Number(event.target.value) })} /></label>
             <label>课程类型<select value={form.courseTypeId} onChange={(event) => setForm({ ...form, courseTypeId: Number(event.target.value) })}>{types.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             <label>课时<input type="number" value={form.hours} onChange={(event) => setForm({ ...form, hours: Number(event.target.value) })} /></label>

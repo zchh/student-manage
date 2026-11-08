@@ -165,6 +165,20 @@ describe("服务规格", () => {
     });
   });
 
+  it("未买课的试听学生可以登记消费，并变为已买课", async () => {
+    const { store, advisor } = await demoStore();
+    const created = await service.createTrial(store, advisor, { ...trial, studentName: "小陈", phone: "13800138000" });
+    const purchase = await service.createPurchase(store, advisor, { trialId: created.id, amount: 800, courseTypeId: 1, hours: 4 });
+    expect(purchase.studentId).toBeGreaterThan(0);
+    const students = await service.listStudents(store, advisor);
+    expect(students.some((item) => item.name === "小陈" && item.phone === "13800138000")).toBe(true);
+    const trials = await service.listTrials(store, advisor);
+    expect(trials.find((item) => item.id === created.id)?.bought).toBe(true);
+    await expect(
+      service.createPurchase(store, advisor, { trialId: created.id, amount: 100, courseTypeId: 1, hours: 1 }),
+    ).rejects.toMatchObject({ code: "SPEC-HOUR-01" });
+  });
+
   it("SPEC-STUDENT-01 已分班的学生不能删除", async () => {
     const { store, advisor } = await demoStore();
     const student = await service.createStudent(store, advisor, {

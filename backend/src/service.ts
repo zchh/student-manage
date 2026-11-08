@@ -288,15 +288,44 @@ export async function deleteStudent(store: Store, actor: Actor, id: number) {
 export async function createPurchase(
   store: Store,
   actor: Actor,
-  input: { studentId: number; amount: number; courseTypeId: number; hours: number },
+  input: { studentId?: number; trialId?: number; amount: number; courseTypeId: number; hours: number },
 ) {
   assertRole(actor.role, "advisor");
   if (!Number.isInteger(input.hours) || input.hours <= 0) {
     throw new SpecError("SPEC-HOUR-01", "课时必须是正整数");
   }
-  const student = (await store.students()).find((item) => item.id === input.studentId);
+  if (input.trialId) {
+    const trial = await requireTrial(store, Number(input.trialId));
+    if (trial.bought) throw new SpecError("SPEC-HOUR-01", "该试听学生已买课");
+    const student = await createStudent(store, actor, {
+      name: trial.studentName,
+      gender: trial.gender,
+      birthDate: trial.birthDate,
+      grade: "",
+      phone: trial.phone,
+      parentPhone: trial.parentPhone,
+    });
+    const purchase = await store.insertPurchase({
+      studentId: student.id,
+      amount: input.amount,
+      courseTypeId: Number(input.courseTypeId),
+      hours: input.hours,
+      advisorId: actor.id,
+      ...audit(store, actor),
+    });
+    await updateTrial(store, actor, trial.id, { ...trial, bought: true });
+    return purchase;
+  }
+  const student = (await store.students()).find((item) => item.id === Number(input.studentId));
   if (!student) throw new SpecError("SPEC-HOUR-01", "学生不存在", 404);
-  return store.insertPurchase({ ...input, advisorId: actor.id, ...audit(store, actor) });
+  return store.insertPurchase({
+    studentId: student.id,
+    amount: input.amount,
+    courseTypeId: Number(input.courseTypeId),
+    hours: input.hours,
+    advisorId: actor.id,
+    ...audit(store, actor),
+  });
 }
 
 export async function listPurchases(store: Store, actor: Actor, keyword = "") {
