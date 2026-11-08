@@ -44,6 +44,7 @@ export interface Store {
   insertClassStudent(row: ClassStudent): Promise<void>;
   insertSession(row: Omit<Session, "id">): Promise<Session>;
   updateSession(row: Session): Promise<Session>;
+  deleteSession(id: number): Promise<void>;
   insertAttendance(row: Omit<Attendance, "id">): Promise<Attendance>;
   updateAttendance(row: Attendance): Promise<Attendance>;
   deleteStudent(id: number): Promise<void>;

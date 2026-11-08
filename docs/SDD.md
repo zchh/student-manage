@@ -51,7 +51,7 @@ npm test
 
 顾问可以：试听课、消费记录、学生、班级、把学生分进班级。
 
-教师可以：查看自己的班级和学生、创建自己班级的课时、给学生签到、把课时标为请假。
+教师可以：查看自己的班级和学生、创建自己班级的课时、删除还没有签到记录的课时、给学生签到、把课时标为请假。
 
 未登录访问业务接口返回 401。
 
@@ -84,7 +84,7 @@ npm test
 | SPEC-CLASS-02 | 一个学生同时只能在一个班级。 |
 | SPEC-CLASS-03 | 创建班级时，教师自己的课程类型必须和班级课程类型一致。 |
 | SPEC-SESSION-01 | 教师只能为自己任教的班级创建课时。 |
-| SPEC-SESSION-02 | 课时状态为「教师请假」时不能签到。已有签到记录时不能再改成请假。 |
+| SPEC-SESSION-02 | 课时状态为「教师请假」时不能签到。已有签到记录时不能再改成请假，也不能删除。 |
 | SPEC-ATTEND-01 | 该课程已完成课时为 0 的学生，签到页标为新生。 |
 | SPEC-STUDENT-01 | 已分班或已有签到的学生不能删除。 |
 
@@ -138,6 +138,7 @@ npm test
 | GET | `/api/teacher/classes/:id/students` | 教师 |
 | GET/POST | `/api/teacher/classes/:id/sessions` | 教师。POST 创建课时 |
 | PATCH | `/api/teacher/sessions/:id` | 教师，修改状态 |
+| DELETE | `/api/teacher/sessions/:id` | 教师。已有签到记录时拒绝 |
 | GET/POST | `/api/teacher/sessions/:id/attendance` | 教师。POST 体：`{ items: [{ studentId, status, remark }] }` |
 
 失败时返回 `{ "error": "原因", "code": "SPEC-..." }`。

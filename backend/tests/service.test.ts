@@ -165,6 +165,27 @@ describe("服务规格", () => {
     });
   });
 
+  it("没有签到的课时可以删除，已签到的不能删除", async () => {
+    const { store, advisor, teacher } = await demoStore();
+    const student = await service.createStudent(store, advisor, {
+      name: "小周", gender: "男", birthDate: "2016-03-03", grade: "三年级", phone: "1", parentPhone: "2",
+    });
+    await service.createPurchase(store, advisor, { studentId: student.id, amount: 800, courseTypeId: 1, hours: 4 });
+    const classGroup = await service.createClass(store, advisor, { name: "钢琴A", teacherId: 1, courseTypeId: 1 });
+    await service.assignStudent(store, advisor, classGroup.id, student.id);
+    const open = await service.createSession(store, teacher, classGroup.id, {
+      weekday: "周六", sessionDate: "2026-11-14", timeRange: "10:00-11:00", topic: "音阶", remark: "",
+    });
+    await service.deleteSession(store, teacher, open.id);
+    expect(await service.listSessions(store, teacher, classGroup.id)).toEqual([]);
+    const signed = await service.createSession(store, teacher, classGroup.id, {
+      weekday: "周六", sessionDate: "2026-11-21", timeRange: "10:00-11:00", topic: "练习", remark: "",
+    });
+    await service.submitAttendance(store, teacher, signed.id, [{ studentId: student.id, status: "已到", remark: "" }]);
+    await expect(service.deleteSession(store, teacher, signed.id)).rejects.toMatchObject({ code: "SPEC-SESSION-02" });
+    await expect(service.deleteSession(store, advisor, open.id)).rejects.toMatchObject({ code: "SPEC-PERM-02" });
+  });
+
   it("未买课的试听学生可以登记消费，并变为已买课", async () => {
     const { store, advisor } = await demoStore();
     const created = await service.createTrial(store, advisor, { ...trial, studentName: "小陈", phone: "13800138000" });

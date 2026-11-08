@@ -490,6 +490,17 @@ export async function updateSession(
   });
 }
 
+export async function deleteSession(store: Store, actor: Actor, sessionId: number) {
+  assertRole(actor.role, "teacher");
+  const session = (await store.sessions()).find((item) => item.id === sessionId);
+  if (!session) throw new SpecError("SPEC-SESSION-02", "课时不存在", 404);
+  ownClass(actor, session.teacherId);
+  if ((await store.attendances()).some((item) => item.sessionId === sessionId)) {
+    throw new SpecError("SPEC-SESSION-02", "已有签到记录，不能删除");
+  }
+  await store.deleteSession(sessionId);
+}
+
 export async function attendanceSheet(store: Store, actor: Actor, sessionId: number) {
   assertRole(actor.role, "teacher");
   const session = (await store.sessions()).find((item) => item.id === sessionId);

@@ -81,6 +81,16 @@ export default function SessionsPage() {
     }
   }
 
+  async function remove(id: number) {
+    setError("");
+    try {
+      await api(`/api/teacher/sessions/${id}`, { method: "DELETE" });
+      await load(classId);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "删除失败");
+    }
+  }
+
   return (
     <>
       <div className="top">
@@ -126,7 +136,10 @@ export default function SessionsPage() {
           {pager.slice.map((row) => (
             <tr key={row.id}>
               <td>{row.weekday}</td><td>{row.sessionDate}</td><td>{row.timeRange}</td><td>{row.topic}</td><td>{row.status}</td>
-              <td>{row.status === "待上课" && <button className="ghost" onClick={() => leave(row.id)}>请假</button>}</td>
+              <td>
+                {row.status === "待上课" && <button className="ghost" onClick={() => leave(row.id)}>请假</button>}
+                <button className="danger" onClick={() => remove(row.id)}>删除</button>
+              </td>
             </tr>
           ))}
         </tbody>

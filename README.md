@@ -22,7 +22,7 @@
 | 角色 | 能做的事 | 页面 |
 | --- | --- | --- |
 | 顾问 | 试听课、消费记录、学生、班级、分班 | `/advisor/trials`、`/advisor/purchases`、`/advisor/students`、`/advisor/classes` |
-| 教师 | 查看自己的班和学生、创建课时、签到、把课时标为请假 | `/teacher/sessions`、`/teacher/students`、`/teacher/attendance` |
+| 教师 | 查看自己的班和学生、创建课时、删除还没有签到记录的课时、签到、把课时标为请假 | `/teacher/sessions`、`/teacher/students`、`/teacher/attendance` |
 
 登录页是 `/`。两边菜单互不出现。直接打开对方地址会被送回登录页，对应的写接口返回 403。
 

@@ -83,6 +83,10 @@ export function createMemoryStore(): Store {
       sessions[index] = { ...row };
       return { ...row };
     },
+    deleteSession: async (id) => {
+      const index = sessions.findIndex((item) => item.id === id);
+      if (index >= 0) sessions.splice(index, 1);
+    },
     insertAttendance: async (row) => push(attendances, row),
     updateAttendance: async (row) => {
       const index = attendances.findIndex((item) => item.id === row.id);

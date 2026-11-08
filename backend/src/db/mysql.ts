@@ -382,6 +382,9 @@ export async function createMysqlStore(): Promise<Store> {
       );
       return row;
     },
+    deleteSession: async (id) => {
+      await pool.query("DELETE FROM class_sessions WHERE id=?", [id]);
+    },
     insertAttendance: async (row) => {
       const [result] = await pool.query(
         `INSERT INTO attendances (session_id, student_id, status, remark, created_at, updated_at, created_by, updated_by) VALUES (?,?,?,?,?,?,?,?)`,

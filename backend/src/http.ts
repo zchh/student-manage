@@ -145,6 +145,10 @@ export function createApp(store: Store) {
   app.patch("/api/teacher/sessions/:id", asyncRoute(async (req, res) => {
     res.json(await service.updateSession(store, req.actor!, Number(req.params.id), req.body));
   }));
+  app.delete("/api/teacher/sessions/:id", asyncRoute(async (req, res) => {
+    await service.deleteSession(store, req.actor!, Number(req.params.id));
+    res.status(204).end();
+  }));
   app.get("/api/teacher/sessions/:id/attendance", asyncRoute(async (req, res) => {
     res.json(await service.attendanceSheet(store, req.actor!, Number(req.params.id)));
   }));
