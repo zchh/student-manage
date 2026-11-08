@@ -105,7 +105,6 @@ function trialInput(input: TrialBody): TrialBody {
     parentPhone: input.parentPhone ?? "",
     bought: Boolean(input.bought),
     remark: input.remark ?? "",
-    opinion: input.opinion ?? "",
     plannedEnrollDate: input.plannedEnrollDate ?? "",
   };
 }
@@ -222,7 +221,6 @@ export async function generateTrialAssist(
     courseType: courseType?.name ?? "",
     timeRange: trial.timeRange,
     remark: trial.remark,
-    opinion: trial.opinion,
     plannedEnrollDate: trial.plannedEnrollDate,
     visits: visits.map((item) => `- ${item.createdAt.slice(0, 16).replace("T", " ")} ${item.content}`).join("\n"),
   });

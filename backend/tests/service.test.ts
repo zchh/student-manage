@@ -14,7 +14,6 @@ const trial = {
   parentPhone: "13900000001",
   bought: false,
   remark: "再考虑一下",
-  opinion: "节奏感不错",
   plannedEnrollDate: "",
 };
 
@@ -43,7 +42,7 @@ describe("服务规格", () => {
     const created = await service.createTrial(store, advisor, trial);
     const updated = await service.updateTrial(store, advisor, created.id, { ...trial, bought: true, remark: "" });
     expect(updated.bought).toBe(true);
-    expect(updated.opinion).toBe("节奏感不错");
+    expect(updated.studentName).toBe("小周");
   });
 
   it("顾问可以登记回访和 AI 助力，并删除回访", async () => {

@@ -11,7 +11,6 @@ export interface TrialAssistFacts {
   courseType: string;
   timeRange: string;
   remark: string;
-  opinion: string;
   plannedEnrollDate: string;
   visits: string;
 }

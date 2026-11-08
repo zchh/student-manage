@@ -16,7 +16,6 @@
 - 课程类型：{{courseType}}
 - 试听时间段：{{timeRange}}
 - 未买课原因：{{remark}}
-- 试听意见：{{opinion}}
 - 计划报名时间：{{plannedEnrollDate}}
 
 ## 回访记录

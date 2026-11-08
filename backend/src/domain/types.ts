@@ -75,7 +75,6 @@ export interface Trial extends Audit {
   parentPhone: string;
   bought: boolean;
   remark: string;
-  opinion: string;
   plannedEnrollDate: string;
 }
 

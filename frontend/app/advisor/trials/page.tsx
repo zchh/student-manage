@@ -22,7 +22,6 @@ interface Trial {
   parentPhone: string;
   bought: boolean;
   remark: string;
-  opinion: string;
   plannedEnrollDate: string;
   createdAt: string;
 }
@@ -30,7 +29,7 @@ interface Trial {
 const empty = {
   teacherId: 1, courseTypeId: 1, startHour: "10", startMinute: "00", endHour: "11", endMinute: "00",
   studentName: "", gender: "男", birthDate: "",
-  phone: "", parentPhone: "", bought: false, remark: "", opinion: "", plannedEnrollDate: "",
+  phone: "", parentPhone: "", bought: false, remark: "", plannedEnrollDate: "",
 };
 
 const hours = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
@@ -54,7 +53,6 @@ function toForm(row: Trial): typeof empty {
     parentPhone: row.parentPhone,
     bought: row.bought,
     remark: row.remark,
-    opinion: row.opinion ?? "",
     plannedEnrollDate: row.plannedEnrollDate,
   };
 }
@@ -137,7 +135,6 @@ export default function TrialsPage() {
             <label>家长联系方式<input value={form.parentPhone} onChange={(event) => set("parentPhone", event.target.value)} /></label>
             <label>是否已买课<select value={String(form.bought)} onChange={(event) => set("bought", event.target.value === "true") }><option value="false">否</option><option value="true">是</option></select></label>
             <label>备注<input value={form.remark} onChange={(event) => set("remark", event.target.value)} placeholder="没买课的原因" /></label>
-            <label>意见<input value={form.opinion} onChange={(event) => set("opinion", event.target.value)} /></label>
             <label>计划报名时间<input type="date" value={form.plannedEnrollDate} onChange={(event) => set("plannedEnrollDate", event.target.value)} /></label>
           </div>
           <p><button type="submit">保存</button></p>
