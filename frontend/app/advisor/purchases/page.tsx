@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Modal } from "@/components/Modal";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
@@ -71,22 +72,29 @@ export default function PurchasesPage() {
           <button className="ghost" onClick={() => load().catch((reason) => setError(reason.message))}>查询</button>
           <button onClick={() => {
             const first = unpaid[0];
+            setError("");
             setForm({ trialId: first?.id ?? 0, amount: "", hours: 4 });
             setOpen(true);
           }}>新增</button>
         </div>
       </div>
-      {error && <p className="error">{error}</p>}
+      {error && !open && <p className="error">{error}</p>}
       {open && (
-        <form className="panel" onSubmit={onSubmit}>
+        <Modal label="新增消费记录" wide onClose={() => setOpen(false)}>
+        <form onSubmit={onSubmit}>
+          {error && <p className="error">{error}</p>}
           <div className="grid">
             <label>学生<select value={form.trialId} onChange={(event) => setForm({ ...form, trialId: Number(event.target.value) })}>{unpaid.map((item) => <option key={item.id} value={item.id}>{trialLabel(item)}</option>)}</select></label>
             <label>消费金额<input value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label>
             <label>课程类型<input value={selected?.courseTypeName ?? ""} readOnly /></label>
             <label>课时<input type="number" value={form.hours} onChange={(event) => setForm({ ...form, hours: Number(event.target.value) })} /></label>
           </div>
-          <button type="submit">保存</button>
+          <div className="actions">
+            <button type="submit">保存</button>
+            <button type="button" className="ghost" onClick={() => setOpen(false)}>关闭</button>
+          </div>
         </form>
+        </Modal>
       )}
       <table>
         <thead><tr><th>学生姓名</th><th>顾问编号</th><th>顾问姓名</th><th>消费金额</th><th>课程类型</th><th>课时</th><th>时间</th></tr></thead>

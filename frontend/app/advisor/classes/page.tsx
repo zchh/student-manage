@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Modal } from "@/components/Modal";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
@@ -73,17 +74,23 @@ export default function ClassesPage() {
 
   return (
     <>
-      <div className="top"><h1>班级</h1><button onClick={() => setOpen(true)}>新增</button></div>
-      {error && <p className="error">{error}</p>}
+      <div className="top"><h1>班级</h1><button onClick={() => { setError(""); setOpen(true); }}>新增</button></div>
+      {error && !open && <p className="error">{error}</p>}
       {open && (
-        <form className="panel" onSubmit={onSubmit}>
+        <Modal label="新增班级" wide onClose={() => setOpen(false)}>
+        <form onSubmit={onSubmit}>
+          {error && <p className="error">{error}</p>}
           <div className="grid">
             <label>班级名称<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
             <label>教师<select value={form.teacherId} onChange={(event) => setForm({ ...form, teacherId: Number(event.target.value) })}>{teachers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             <label>课程类型<select value={form.courseTypeId} onChange={(event) => setForm({ ...form, courseTypeId: Number(event.target.value) })}>{types.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
           </div>
-          <button type="submit">保存</button>
+          <div className="actions">
+            <button type="submit">保存</button>
+            <button type="button" className="ghost" onClick={() => setOpen(false)}>关闭</button>
+          </div>
         </form>
+        </Modal>
       )}
       <form className="panel" onSubmit={place}>
         <div className="grid">

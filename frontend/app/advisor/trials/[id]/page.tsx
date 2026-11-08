@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { Facts } from "@/components/Facts";
+import { Modal } from "@/components/Modal";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
@@ -88,27 +90,31 @@ export default function TrialFollowUpPage() {
         <h1>回访记录</h1>
         <button className="ghost" onClick={() => router.push("/advisor/trials")}>返回试听课</button>
       </div>
-      {error && <p className="error">{error}</p>}
+      {error && !writing && <p className="error">{error}</p>}
       {page && (
         <section className="panel">
-          <p>学生姓名：{page.studentName}</p>
-          <p>课程类型：{page.courseTypeName}</p>
-          <p className="pre">最新AI助力信息：{page.latestAssist || "暂无"}</p>
+          <Facts items={[["学生姓名", page.studentName], ["课程类型", page.courseTypeName], ["最新AI助力信息", page.latestAssist || "暂无"]]} />
         </section>
       )}
       <div className="actions">
-        <button onClick={() => { setWriting(true); setContent(""); }}>登记回访内容</button>
+        <button onClick={() => { setError(""); setWriting(true); setContent(""); }}>登记回访内容</button>
         <button disabled={generating} onClick={generate}>{generating ? "生成中…" : "AI助力"}</button>
         <button className="ghost" onClick={() => setHistory((open) => !open)}>历史AI助力内容</button>
       </div>
       {writing && (
-        <form className="panel" onSubmit={onSubmit}>
+        <Modal label="登记回访内容" onClose={() => setWriting(false)}>
+        <form onSubmit={onSubmit}>
+          {error && <p className="error">{error}</p>}
           <label>
             回访内容
             <textarea value={content} onChange={(event) => setContent(event.target.value)} />
           </label>
-          <p><button type="submit">保存</button></p>
+          <div className="actions">
+            <button type="submit">保存</button>
+            <button type="button" className="ghost" onClick={() => setWriting(false)}>关闭</button>
+          </div>
         </form>
+        </Modal>
       )}
       {history && (
         <>

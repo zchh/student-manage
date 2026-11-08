@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Modal } from "@/components/Modal";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
@@ -140,14 +141,17 @@ export default function TrialsPage() {
         <button onClick={() => {
           const courseTypeId = types[0]?.id ?? empty.courseTypeId;
           const linked = teachersForType(courseTypeId, classes, teachers);
+          setError("");
           setEditing(null);
           setForm({ ...empty, courseTypeId, teacherId: linked[0]?.id ?? 0 });
           setOpen(true);
         }}>新增</button>
       </div>
-      {error && <p className="error">{error}</p>}
+      {error && !open && <p className="error">{error}</p>}
       {open && (
-        <form className="panel" onSubmit={onSubmit}>
+        <Modal label={editing ? "编辑试听课" : "新增试听课"} wide onClose={() => { setOpen(false); setEditing(null); }}>
+        <form onSubmit={onSubmit}>
+          {error && <p className="error">{error}</p>}
           <div className="grid">
             <label>课程类型<select value={form.courseTypeId} onChange={(event) => onCourseType(Number(event.target.value))}>{types.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             <label>教师<select value={form.teacherId} onChange={(event) => set("teacherId", Number(event.target.value))}>{teacherOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
@@ -174,8 +178,12 @@ export default function TrialsPage() {
             <label>备注<input value={form.remark} onChange={(event) => set("remark", event.target.value)} /></label>
             <label>计划报名时间<input type="date" value={form.plannedEnrollDate} onChange={(event) => set("plannedEnrollDate", event.target.value)} /></label>
           </div>
-          <p><button type="submit">保存</button></p>
+          <div className="actions">
+            <button type="submit">保存</button>
+            <button type="button" className="ghost" onClick={() => { setOpen(false); setEditing(null); }}>关闭</button>
+          </div>
         </form>
+        </Modal>
       )}
       <table>
         <thead>
@@ -189,7 +197,7 @@ export default function TrialsPage() {
               <td>{row.birthDate}</td><td>{row.phone}</td><td>{row.parentPhone}</td><td>{row.bought ? "是" : "否"}</td>
               <td>{row.remark}</td><td>{row.plannedEnrollDate}</td><td>{row.createdAt.slice(0, 16).replace("T", " ")}</td>
               <td>
-                <button className="ghost" onClick={() => { setEditing(row.id); setForm(toForm(row)); setOpen(true); }}>编辑</button>
+                <button className="ghost" onClick={() => { setError(""); setEditing(row.id); setForm(toForm(row)); setOpen(true); }}>编辑</button>
                 <button className="ghost" onClick={() => router.push(`/advisor/trials/${row.id}`)}>回访记录</button>
               </td>
             </tr>

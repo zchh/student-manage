@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Facts } from "@/components/Facts";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
@@ -18,14 +19,6 @@ interface StudentDetail {
   id: number; studentNo: string; name: string; gender: string; birthDate: string; grade: string;
   phone: string; parentPhone: string; advisorId: number | null; advisorName: string;
   completedHours: number; remainingHours: number; low: boolean;
-}
-
-function Facts({ items }: { items: [string, string | number][] }) {
-  return (
-    <p className="facts">
-      {items.map(([key, value]) => <span key={key}><strong>{key}</strong>: {value}</span>)}
-    </p>
-  );
 }
 
 export default function AttendancePage() {

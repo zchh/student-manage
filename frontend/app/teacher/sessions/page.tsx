@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Facts } from "@/components/Facts";
+import { Modal } from "@/components/Modal";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
@@ -96,18 +98,20 @@ export default function SessionsPage() {
       <div className="top">
         <div>
           <h1>班级课时</h1>
-          {current && <p>班级名称 {current.name}　教师编号 {current.teacherId}　教师姓名 {current.teacherName}</p>}
+          {current && <Facts items={[["班级名称", current.name], ["教师编号", current.teacherId], ["教师姓名", current.teacherName]]} />}
         </div>
-        <button onClick={() => { setForm(empty); setOpen(true); }} disabled={!classId}>新增</button>
+        <button onClick={() => { setError(""); setForm(empty); setOpen(true); }} disabled={!classId}>新增</button>
       </div>
       {classes.length > 1 && (
         <select value={classId} onChange={(event) => load(Number(event.target.value))}>
           {classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
         </select>
       )}
-      {error && <p className="error">{error}</p>}
+      {error && !open && <p className="error">{error}</p>}
       {open && (
-        <form className="panel" onSubmit={onSubmit}>
+        <Modal label="新增课时" wide onClose={() => setOpen(false)}>
+        <form onSubmit={onSubmit}>
+          {error && <p className="error">{error}</p>}
           <div className="grid">
             <label>日期<input type="date" value={form.sessionDate} onChange={(event) => setForm({ ...form, sessionDate: event.target.value, weekday: weekdayOf(event.target.value) })} /></label>
             <label>周几<input value={form.weekday} readOnly /></label>
@@ -127,8 +131,12 @@ export default function SessionsPage() {
             </label>
             <label>课程主题<input value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })} /></label>
           </div>
-          <button type="submit">保存</button>
+          <div className="actions">
+            <button type="submit">保存</button>
+            <button type="button" className="ghost" onClick={() => setOpen(false)}>关闭</button>
+          </div>
         </form>
+        </Modal>
       )}
       <table>
         <thead><tr><th>周几</th><th>日期</th><th>时间段</th><th>主题</th><th>状态</th><th>操作</th></tr></thead>

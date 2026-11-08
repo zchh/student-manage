@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Modal } from "@/components/Modal";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
@@ -77,12 +78,14 @@ export default function StudentsPage() {
           </select>
           <input placeholder="姓名或学号" value={keyword} onChange={(event) => setKeyword(event.target.value)} />
           <button className="ghost" onClick={() => load().catch((reason) => setError(reason.message))}>查询</button>
-          <button onClick={() => setOpen(true)}>新增</button>
+          <button onClick={() => { setError(""); setForm(empty); setOpen(true); }}>新增</button>
         </div>
       </div>
-      {error && <p className="error">{error}</p>}
+      {error && !open && <p className="error">{error}</p>}
       {open && (
-        <form className="panel" onSubmit={onSubmit}>
+        <Modal label="新增学生" wide onClose={() => setOpen(false)}>
+        <form onSubmit={onSubmit}>
+          {error && <p className="error">{error}</p>}
           <div className="grid">
             <label>姓名<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
             <label>性别<input value={form.gender} onChange={(event) => setForm({ ...form, gender: event.target.value })} /></label>
@@ -91,8 +94,12 @@ export default function StudentsPage() {
             <label>联系方式<input value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></label>
             <label>家长联系方式<input value={form.parentPhone} onChange={(event) => setForm({ ...form, parentPhone: event.target.value })} /></label>
           </div>
-          <button type="submit">保存</button>
+          <div className="actions">
+            <button type="submit">保存</button>
+            <button type="button" className="ghost" onClick={() => setOpen(false)}>关闭</button>
+          </div>
         </form>
+        </Modal>
       )}
       <table>
         <thead><tr><th>学生编号</th><th>学生姓名</th><th>性别</th><th>出生年月日</th><th>联系方式</th><th>家长联系方式</th><th>班级</th><th>教师编号</th><th>教师</th><th>已完成课时</th><th>剩余课时</th><th>操作</th></tr></thead>
