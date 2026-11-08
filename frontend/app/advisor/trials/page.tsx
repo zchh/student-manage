@@ -28,15 +28,25 @@ interface Trial {
 }
 
 const empty = {
-  teacherId: 1, courseTypeId: 1, timeRange: "", studentName: "", gender: "男", birthDate: "",
+  teacherId: 1, courseTypeId: 1, startHour: "10", startMinute: "00", endHour: "11", endMinute: "00",
+  studentName: "", gender: "男", birthDate: "",
   phone: "", parentPhone: "", bought: false, remark: "", opinion: "", plannedEnrollDate: "",
 };
+
+const hours = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
+const minutes = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, "0"));
+
+function splitTime(value: string) {
+  const matched = value.match(/(\d{2}):(\d{2})\s*-\s*(\d{2}):(\d{2})/);
+  if (!matched) return { startHour: "10", startMinute: "00", endHour: "11", endMinute: "00" };
+  return { startHour: matched[1], startMinute: matched[2], endHour: matched[3], endMinute: matched[4] };
+}
 
 function toForm(row: Trial): typeof empty {
   return {
     teacherId: row.teacherId,
     courseTypeId: row.courseTypeId,
-    timeRange: row.timeRange,
+    ...splitTime(row.timeRange),
     studentName: row.studentName,
     gender: row.gender,
     birthDate: row.birthDate,
@@ -80,8 +90,15 @@ export default function TrialsPage() {
     event.preventDefault();
     setError("");
     try {
+      const start = `${form.startHour}:${form.startMinute}`;
+      const end = `${form.endHour}:${form.endMinute}`;
+      if (start >= end) {
+        setError("结束时间要晚于开始时间");
+        return;
+      }
+      const { startHour, startMinute, endHour, endMinute, ...rest } = form;
       const path = editing ? `/api/trials/${editing}` : "/api/trials";
-      await api(path, { method: editing ? "PUT" : "POST", body: JSON.stringify(form) });
+      await api(path, { method: editing ? "PUT" : "POST", body: JSON.stringify({ ...rest, timeRange: `${start}-${end}` }) });
       setOpen(false);
       setEditing(null);
       setForm(empty);
@@ -103,7 +120,16 @@ export default function TrialsPage() {
           <div className="grid">
             <label>教师<select value={form.teacherId} onChange={(event) => set("teacherId", Number(event.target.value))}>{teachers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             <label>课程类型<select value={form.courseTypeId} onChange={(event) => set("courseTypeId", Number(event.target.value))}>{types.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-            <label>试听时间段<input value={form.timeRange} onChange={(event) => set("timeRange", event.target.value)} /></label>
+            <label className="time-range">试听时间段
+              <select value={form.startHour} onChange={(event) => set("startHour", event.target.value)}>{hours.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+              时
+              <select value={form.startMinute} onChange={(event) => set("startMinute", event.target.value)}>{minutes.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+              分到
+              <select value={form.endHour} onChange={(event) => set("endHour", event.target.value)}>{hours.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+              时
+              <select value={form.endMinute} onChange={(event) => set("endMinute", event.target.value)}>{minutes.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+              分
+            </label>
             <label>学生姓名<input value={form.studentName} onChange={(event) => set("studentName", event.target.value)} /></label>
             <label>性别<input value={form.gender} onChange={(event) => set("gender", event.target.value)} /></label>
             <label>出生年月日<input type="date" value={form.birthDate} onChange={(event) => set("birthDate", event.target.value)} /></label>

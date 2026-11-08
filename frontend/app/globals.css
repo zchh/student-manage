@@ -41,3 +41,5 @@ th { background: #faf7f2; }
 .tag { color: #8a5a12; font-weight: 600; }
 .pager { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
 .pager input { width: 72px; }
+.time-range { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; align-items: center; grid-column: span 2; }
+.time-range select { width: 72px; }
