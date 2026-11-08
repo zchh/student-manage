@@ -152,14 +152,18 @@ export default function TrialsPage() {
             <label>课程类型<select value={form.courseTypeId} onChange={(event) => onCourseType(Number(event.target.value))}>{types.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             <label>教师<select value={form.teacherId} onChange={(event) => set("teacherId", Number(event.target.value))}>{teacherOptions.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             <label className="time-range">试听时间段
-              <select value={form.startHour} onChange={(event) => set("startHour", event.target.value)}>{hours.map((item) => <option key={item} value={item}>{item}</option>)}</select>
-              时
-              <select value={form.startMinute} onChange={(event) => set("startMinute", event.target.value)}>{minutes.map((item) => <option key={item} value={item}>{item}</option>)}</select>
-              分到
-              <select value={form.endHour} onChange={(event) => set("endHour", event.target.value)}>{hours.map((item) => <option key={item} value={item}>{item}</option>)}</select>
-              时
-              <select value={form.endMinute} onChange={(event) => set("endMinute", event.target.value)}>{minutes.map((item) => <option key={item} value={item}>{item}</option>)}</select>
-              分
+              <span className="time-part">
+                <select value={form.startHour} onChange={(event) => set("startHour", event.target.value)}>{hours.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+                时
+                <select value={form.startMinute} onChange={(event) => set("startMinute", event.target.value)}>{minutes.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+                分到
+              </span>
+              <span className="time-part">
+                <select value={form.endHour} onChange={(event) => set("endHour", event.target.value)}>{hours.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+                时
+                <select value={form.endMinute} onChange={(event) => set("endMinute", event.target.value)}>{minutes.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+                分
+              </span>
             </label>
             <label>学生姓名<input value={form.studentName} onChange={(event) => set("studentName", event.target.value)} /></label>
             <label>性别<input value={form.gender} onChange={(event) => set("gender", event.target.value)} /></label>

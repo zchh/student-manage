@@ -9,7 +9,16 @@ interface Session {
   id: number; weekday: string; sessionDate: string; timeRange: string; topic: string; status: string; remark: string;
 }
 
-const empty = { weekday: "周六", sessionDate: "", timeRange: "", topic: "", remark: "" };
+const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+const hours = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
+const minutes = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, "0"));
+const empty = { sessionDate: "", weekday: "", startHour: "10", startMinute: "00", endHour: "11", endMinute: "00", topic: "", remark: "" };
+
+function weekdayOf(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return "";
+  return weekdays[new Date(year, month - 1, day).getDay()];
+}
 
 export default function SessionsPage() {
   const [classes, setClasses] = useState<ClassRow[]>([]);
@@ -35,7 +44,26 @@ export default function SessionsPage() {
     event.preventDefault();
     setError("");
     try {
-      await api(`/api/teacher/classes/${classId}/sessions`, { method: "POST", body: JSON.stringify(form) });
+      if (!form.sessionDate || !form.weekday) {
+        setError("请选择日期");
+        return;
+      }
+      const start = `${form.startHour}:${form.startMinute}`;
+      const end = `${form.endHour}:${form.endMinute}`;
+      if (start >= end) {
+        setError("结束时间要晚于开始时间");
+        return;
+      }
+      await api(`/api/teacher/classes/${classId}/sessions`, {
+        method: "POST",
+        body: JSON.stringify({
+          weekday: form.weekday,
+          sessionDate: form.sessionDate,
+          timeRange: `${start}-${end}`,
+          topic: form.topic,
+          remark: form.remark,
+        }),
+      });
       setOpen(false);
       await load(classId);
     } catch (reason) {
@@ -60,7 +88,7 @@ export default function SessionsPage() {
           <h1>班级课时</h1>
           {current && <p>班级名称 {current.name}　教师编号 {current.teacherId}　教师姓名 {current.teacherName}</p>}
         </div>
-        <button onClick={() => setOpen(true)} disabled={!classId}>新增</button>
+        <button onClick={() => { setForm(empty); setOpen(true); }} disabled={!classId}>新增</button>
       </div>
       {classes.length > 1 && (
         <select value={classId} onChange={(event) => load(Number(event.target.value))}>
@@ -71,9 +99,22 @@ export default function SessionsPage() {
       {open && (
         <form className="panel" onSubmit={onSubmit}>
           <div className="grid">
-            <label>周几<input value={form.weekday} onChange={(event) => setForm({ ...form, weekday: event.target.value })} /></label>
-            <label>日期<input type="date" value={form.sessionDate} onChange={(event) => setForm({ ...form, sessionDate: event.target.value })} /></label>
-            <label>时间段<input value={form.timeRange} onChange={(event) => setForm({ ...form, timeRange: event.target.value })} /></label>
+            <label>日期<input type="date" value={form.sessionDate} onChange={(event) => setForm({ ...form, sessionDate: event.target.value, weekday: weekdayOf(event.target.value) })} /></label>
+            <label>周几<input value={form.weekday} readOnly /></label>
+            <label className="time-range">时间段
+              <span className="time-part">
+                <select value={form.startHour} onChange={(event) => setForm({ ...form, startHour: event.target.value })}>{hours.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+                时
+                <select value={form.startMinute} onChange={(event) => setForm({ ...form, startMinute: event.target.value })}>{minutes.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+                分到
+              </span>
+              <span className="time-part">
+                <select value={form.endHour} onChange={(event) => setForm({ ...form, endHour: event.target.value })}>{hours.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+                时
+                <select value={form.endMinute} onChange={(event) => setForm({ ...form, endMinute: event.target.value })}>{minutes.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+                分
+              </span>
+            </label>
             <label>课程主题<input value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })} /></label>
           </div>
           <button type="submit">保存</button>

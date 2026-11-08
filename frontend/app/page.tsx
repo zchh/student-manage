@@ -4,9 +4,9 @@ import { FormEvent, useState } from "react";
 import { API, type User } from "@/lib/api";
 
 export default function LoginPage() {
-  const [account, setAccount] = useState("advisor");
-  const [password, setPassword] = useState("advisor123");
-  const [role, setRole] = useState<"advisor" | "teacher">("advisor");
+  const [account, setAccount] = useState("teacher03");
+  const [password, setPassword] = useState("teacher123");
+  const [role, setRole] = useState<"advisor" | "teacher">("teacher");
   const [error, setError] = useState("");
 
   async function onSubmit(event: FormEvent) {

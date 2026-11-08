@@ -43,3 +43,4 @@ th { background: #faf7f2; }
 .pager input { width: 72px; }
 .time-range { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; align-items: center; grid-column: span 2; }
 .time-range select { width: 72px; }
+.time-range .time-part { display: inline-flex; flex: 0 0 auto; gap: 4px; align-items: center; white-space: nowrap; }
