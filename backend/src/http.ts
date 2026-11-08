@@ -136,6 +136,9 @@ export function createApp(store: Store) {
   app.get("/api/teacher/classes/:id/students", asyncRoute(async (req, res) => {
     res.json(await service.listTeacherStudents(store, req.actor!, Number(req.params.id)));
   }));
+  app.get("/api/teacher/students/:id/sessions", asyncRoute(async (req, res) => {
+    res.json(await service.listStudentSessionHistory(store, req.actor!, Number(req.params.id)));
+  }));
   app.get("/api/teacher/classes/:id/sessions", asyncRoute(async (req, res) => {
     res.json(await service.listSessions(store, req.actor!, Number(req.params.id)));
   }));

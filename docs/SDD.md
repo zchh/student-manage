@@ -137,6 +137,7 @@ npm test
 | GET | `/api/classes/:id/sessions` | 顾问，课时查看 |
 | GET | `/api/teacher/classes` | 教师，只返回自己的班 |
 | GET | `/api/teacher/classes/:id/students` | 教师 |
+| GET | `/api/teacher/students/:id/sessions` | 教师，自己班学生的历史课时。按日期和时间段倒序 |
 | GET/POST | `/api/teacher/classes/:id/sessions` | 教师。POST 创建课时 |
 | PUT | `/api/teacher/sessions/:id` | 教师，编辑日期、周几、时间段、主题和状态。与本班其他课时重合时拒绝。已有签到记录时不能改为请假 |
 | PATCH | `/api/teacher/sessions/:id` | 教师，修改状态 |
@@ -155,7 +156,7 @@ npm test
 | 学生 | `/advisor/students` | SPEC-STUDENT-01、课时合计 |
 | 班级 | `/advisor/classes` | SPEC-CLASS-01、SPEC-CLASS-02、SPEC-CLASS-03 |
 | 班级课时 | `/teacher/sessions` | SPEC-SESSION-01、SPEC-SESSION-02、SPEC-SESSION-03 |
-| 班级学生 | `/teacher/students` | 只读，含课时与顾问 |
+| 班级学生 | `/teacher/students` | 只读，含课时与顾问。历史课时在 `/teacher/students/:id` |
 | 签到 | `/teacher/attendance` | SPEC-HOUR-02、SPEC-HOUR-03、SPEC-ATTEND-01 |
 
 顾问页面和教师页面互相不放入口。前端根据登录角色拦截地址，服务端仍然按角色拒绝，避免只靠页面隐藏。

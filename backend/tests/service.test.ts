@@ -189,6 +189,31 @@ describe("服务规格", () => {
     await expect(service.deleteSession(store, advisor, open.id)).rejects.toMatchObject({ code: "SPEC-PERM-02" });
   });
 
+  it("教师可以查看自己班学生的历史课时", async () => {
+    const { store, advisor, teacher } = await demoStore();
+    const student = await service.createStudent(store, advisor, {
+      name: "小周", gender: "男", birthDate: "2016-03-03", grade: "三年级", phone: "1", parentPhone: "2",
+    });
+    await service.createPurchase(store, advisor, { studentId: student.id, amount: 800, courseTypeId: 1, hours: 4 });
+    const classGroup = await service.createClass(store, advisor, { name: "钢琴A", teacherId: 1, courseTypeId: 1 });
+    await service.assignStudent(store, advisor, classGroup.id, student.id);
+    const later = await service.createSession(store, teacher, classGroup.id, {
+      weekday: "周六", sessionDate: "2026-11-21", timeRange: "10:00-11:00", topic: "练习", remark: "课时备注",
+    });
+    const earlier = await service.createSession(store, teacher, classGroup.id, {
+      weekday: "周六", sessionDate: "2026-11-14", timeRange: "14:00-15:00", topic: "音阶", remark: "",
+    });
+    await service.submitAttendance(store, teacher, later.id, [{ studentId: student.id, status: "已到", remark: "认真" }]);
+    const history = await service.listStudentSessionHistory(store, teacher, student.id);
+    expect(history).toMatchObject({ studentNo: student.studentNo, name: "小周" });
+    expect(history.sessions).toEqual([
+      { id: later.id, sessionDate: "2026-11-21", weekday: "周六", status: "已到", remark: "认真" },
+      { id: earlier.id, sessionDate: "2026-11-14", weekday: "周六", status: "", remark: "" },
+    ]);
+    await expect(service.listStudentSessionHistory(store, { ...teacher, id: 99 }, student.id)).rejects.toMatchObject({ code: "SPEC-SESSION-01" });
+    await expect(service.listStudentSessionHistory(store, advisor, student.id)).rejects.toMatchObject({ code: "SPEC-PERM-02" });
+  });
+
   it("编辑课时时，同一天的时间段不能与本班其他课时重合", async () => {
     const { store, advisor, teacher } = await demoStore();
     const classGroup = await service.createClass(store, advisor, { name: "钢琴A", teacherId: 1, courseTypeId: 1 });

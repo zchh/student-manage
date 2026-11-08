@@ -443,6 +443,34 @@ export async function listTeacherStudents(store: Store, actor: Actor, classId: n
   return rows;
 }
 
+export async function listStudentSessionHistory(store: Store, actor: Actor, studentId: number) {
+  assertRole(actor.role, "teacher");
+  const student = (await store.students()).find((item) => item.id === studentId);
+  const member = (await store.classStudents()).find((item) => item.studentId === studentId);
+  const classGroup = member ? (await store.classes()).find((item) => item.id === member.classId) : undefined;
+  if (!student || !classGroup || classGroup.teacherId !== actor.id) {
+    throw new SpecError("SPEC-SESSION-01", "学生不在你的班级", 404);
+  }
+  const marks = await store.attendances();
+  const sessions = (await store.sessions())
+    .filter((item) => item.classId === classGroup.id)
+    .sort((left, right) => right.sessionDate.localeCompare(left.sessionDate) || right.timeRange.localeCompare(left.timeRange));
+  return {
+    studentNo: student.studentNo,
+    name: student.name,
+    sessions: sessions.map((session) => {
+      const mark = marks.find((item) => item.sessionId === session.id && item.studentId === studentId);
+      return {
+        id: session.id,
+        sessionDate: session.sessionDate,
+        weekday: session.weekday,
+        status: mark?.status ?? "",
+        remark: mark?.remark ?? "",
+      };
+    }),
+  };
+}
+
 export async function createSession(
   store: Store,
   actor: Actor,
