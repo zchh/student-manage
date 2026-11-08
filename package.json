@@ -1,0 +1,7 @@
+{
+  "name": "student-manage",
+  "private": true,
+  "scripts": {
+    "seed": "npm run seed --prefix backend"
+  }
+}

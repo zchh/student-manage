@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import { SpecError } from "./domain/rules.js";
 import type { Actor, Role } from "./domain/types.js";
 import * as service from "./service.js";
+import { seedBulk } from "./store/bulk-seed.js";
+import { seedDemo } from "./store/seed.js";
 import type { Store } from "./store/types.js";
 
 const secret = () => process.env.JWT_SECRET ?? "dev-secret";
@@ -41,6 +43,23 @@ export function createApp(store: Store) {
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true });
   });
+
+  app.post("/api/seed", asyncRoute(async (_req, res) => {
+    await seedDemo(store);
+    const result = await seedBulk(store);
+    if (!result) {
+      res.json({ created: false, message: "测试数据已存在" });
+      return;
+    }
+    res.status(201).json({
+      created: true,
+      studentCount: result.studentCount,
+      advisors: result.advisors,
+      teachers: result.teachers,
+      classes: result.classes,
+      passwords: { advisor: "advisor123", teacher: "teacher123" },
+    });
+  }));
 
   app.post(
     "/api/auth/login",

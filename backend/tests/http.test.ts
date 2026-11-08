@@ -1,6 +1,7 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../src/http.js";
+import { createMemoryStore } from "../src/store/memory.js";
 import { demoStore } from "./helpers.js";
 
 async function tokenFor(app: ReturnType<typeof createApp>, account: string, password: string, role: string) {
@@ -9,6 +10,20 @@ async function tokenFor(app: ReturnType<typeof createApp>, account: string, pass
 }
 
 describe("HTTP 权限", () => {
+  it("POST /api/seed 无需登录即可创建测试数据", async () => {
+    const store = createMemoryStore();
+    const app = createApp(store);
+    const created = await request(app).post("/api/seed");
+    expect(created.status).toBe(201);
+    expect(created.body.created).toBe(true);
+    expect(created.body.studentCount).toBe(300);
+    expect(await store.students()).toHaveLength(300);
+    const again = await request(app).post("/api/seed");
+    expect(again.status).toBe(200);
+    expect(again.body.created).toBe(false);
+    expect(await store.students()).toHaveLength(300);
+  });
+
   it("SPEC-AUTH-01 密码错误不签发令牌", async () => {
     const { store } = await demoStore();
     const response = await request(createApp(store)).post("/api/auth/login").send({
