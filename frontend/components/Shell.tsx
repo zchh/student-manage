@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { currentUser, logout, type User } from "@/lib/api";
 
 const advisorLinks = [
@@ -16,18 +18,18 @@ const teacherLinks = [
 ];
 
 export function Shell({ role, children }: { role: User["role"]; children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [path, setPath] = useState("");
 
   useEffect(() => {
     const found = currentUser();
     if (!found || found.role !== role) {
-      location.href = "/";
+      router.replace("/");
       return;
     }
     setUser(found);
-    setPath(location.pathname);
-  }, [role]);
+  }, [role, router]);
 
   if (!user) return null;
   const links = role === "advisor" ? advisorLinks : teacherLinks;
@@ -37,7 +39,7 @@ export function Shell({ role, children }: { role: User["role"]; children: React.
         <strong>{user.name}</strong>
         <p>{role === "advisor" ? "顾问" : "教师"}</p>
         {links.map(([href, label]) => (
-          <a className={path === href || path.startsWith(`${href}/`) ? "active" : ""} key={href} href={href}>{label}</a>
+          <Link className={pathname === href || pathname.startsWith(`${href}/`) ? "active" : ""} key={href} href={href}>{label}</Link>
         ))}
         <button className="ghost" style={{ marginTop: 20, color: "white", borderColor: "white" }} onClick={logout}>退出</button>
       </nav>

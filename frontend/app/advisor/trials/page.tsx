@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 
 interface Option { id: number; name: string; courseTypeId?: number }
@@ -48,6 +49,7 @@ function toForm(row: Trial): typeof empty {
 }
 
 export default function TrialsPage() {
+  const router = useRouter();
   const [rows, setRows] = useState<Trial[]>([]);
   const [teachers, setTeachers] = useState<Option[]>([]);
   const [types, setTypes] = useState<Option[]>([]);
@@ -126,7 +128,7 @@ export default function TrialsPage() {
               <td>{row.remark}</td><td>{row.plannedEnrollDate}</td><td>{row.createdAt.slice(0, 16).replace("T", " ")}</td>
               <td>
                 <button className="ghost" onClick={() => { setEditing(row.id); setForm(toForm(row)); setOpen(true); }}>编辑</button>
-                <button className="ghost" onClick={() => { location.href = `/advisor/trials/${row.id}`; }}>回访记录</button>
+                <button className="ghost" onClick={() => router.push(`/advisor/trials/${row.id}`)}>回访记录</button>
               </td>
             </tr>
           ))}

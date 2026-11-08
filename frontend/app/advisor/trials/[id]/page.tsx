@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 
 interface Note {
@@ -23,6 +23,7 @@ function time(value: string) {
 }
 
 export default function TrialFollowUpPage() {
+  const router = useRouter();
   const params = useParams<{ id: string }>();
   const trialId = Number(params.id);
   const [page, setPage] = useState<FollowUps | null>(null);
@@ -82,7 +83,7 @@ export default function TrialFollowUpPage() {
     <>
       <div className="top">
         <h1>回访记录</h1>
-        <button className="ghost" onClick={() => { location.href = "/advisor/trials"; }}>返回试听课</button>
+        <button className="ghost" onClick={() => router.push("/advisor/trials")}>返回试听课</button>
       </div>
       {error && <p className="error">{error}</p>}
       {page && (
