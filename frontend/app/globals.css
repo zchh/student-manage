@@ -16,6 +16,7 @@ button {
   cursor: pointer;
 }
 button.ghost { background: transparent; color: #1f6b5a; border: 1px solid #1f6b5a; }
+button.sort { background: transparent; color: inherit; border: 0; padding: 0; }
 button.danger { background: #8d3b32; }
 button:disabled { opacity: 0.6; cursor: wait; }
 .pre { white-space: pre-wrap; line-height: 1.5; }

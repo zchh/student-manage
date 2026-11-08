@@ -2,7 +2,7 @@
 
 教育机构用的招生和上课系统。顾问负责试听、收费、学生建档和分班；教师负责自己班级的课时和签到。学生不登录。
 
-需求原文在 [DESIGN.md](DESIGN.md)。可验收的行为、接口和测试编号在 [docs/SDD.md](docs/SDD.md)。
+需求原文在 [DESIGN.md](DESIGN.md)。可验收的行为、接口和测试编号在 [docs/SDD.md](docs/SDD.md)。版本迭代记录在 [docs/version.md](docs/version.md)。
 
 ## 业务流程
 
@@ -73,16 +73,16 @@ docker compose up --build
 | 后端 | http://localhost:4000 |
 | MySQL | `localhost:3306`，库名 `student_manage`，用户 `root`，密码 `root` |
 
-表在后端首次连接时自动创建，并写入下面的演示账号。生产环境要更换 `JWT_SECRET` 和数据库密码。
+表在后端首次连接时自动创建。生产环境要更换 `JWT_SECRET` 和数据库密码。
 
 ## 演示账号
 
-首次启动自动写入。课程类型有「钢琴」「美术」，教师「李老师」教授钢琴。
+课程类型有「钢琴」「美术」。教师「何老师」账号 `teacher03`，教授钢琴。
 
 | 角色 | 账号 | 密码 |
 | --- | --- | --- |
 | 顾问 | `advisor` | `advisor123` |
-| 教师 | `teacher` | `teacher123` |
+| 教师 | `teacher03` | `teacher123` |
 
 ## 测试
 

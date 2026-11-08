@@ -30,7 +30,7 @@ export default function LoginPage() {
   return (
     <form className="panel login" onSubmit={onSubmit}>
       <h1>学生管理</h1>
-      <p>顾问账号 advisor / advisor123，教师账号 teacher / teacher123。</p>
+      <p>顾问账号 advisor / advisor123，教师账号 teacher03 / teacher123。</p>
       <div className="grid" style={{ gridTemplateColumns: "1fr" }}>
         <label>账号<input value={account} onChange={(event) => setAccount(event.target.value)} /></label>
         <label>密码<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>

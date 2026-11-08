@@ -27,8 +27,14 @@ export default function StudentsPage() {
   const [renewing, setRenewing] = useState<Student | null>(null);
   const [renewForm, setRenewForm] = useState({ amount: "", hours: "" });
   const [error, setError] = useState("");
+  const [hourOrder, setHourOrder] = useState<"" | "asc" | "desc">("asc");
   const visible = classId ? rows.filter((item) => item.classId === classId) : rows;
-  const pager = usePager(visible);
+  const sorted = hourOrder
+    ? [...visible].sort((left, right) => (
+      hourOrder === "asc" ? left.remainingHours - right.remainingHours : right.remainingHours - left.remainingHours
+    ))
+    : visible;
+  const pager = usePager(sorted);
 
   async function load(text = keyword) {
     const [studentList, classList] = await Promise.all([
@@ -39,6 +45,11 @@ export default function StudentsPage() {
     setClasses(classList);
   }
   useEffect(() => { load("").catch((reason) => setError(reason.message)); }, []);
+
+  function toggleHourOrder() {
+    setHourOrder((current) => (current === "asc" ? "desc" : current === "desc" ? "" : "asc"));
+    pager.setPage(1);
+  }
 
   function chooseClass(id: number) {
     setClassId(id);
@@ -156,7 +167,7 @@ export default function StudentsPage() {
         </Modal>
       )}
       <table>
-        <thead><tr><th>学生编号</th><th>学生姓名</th><th>性别</th><th>出生年月日</th><th>联系方式</th><th>家长联系方式</th><th>班级</th><th>教师编号</th><th>教师</th><th>已完成课时</th><th>剩余课时</th><th>操作</th></tr></thead>
+        <thead><tr><th>学生编号</th><th>学生姓名</th><th>性别</th><th>出生年月日</th><th>联系方式</th><th>家长联系方式</th><th>班级</th><th>教师编号</th><th>教师</th><th>已完成课时</th><th><button type="button" className="sort" onClick={toggleHourOrder}>剩余课时{hourOrder === "asc" ? " ↑" : hourOrder === "desc" ? " ↓" : ""}</button></th><th>操作</th></tr></thead>
         <tbody>
           {pager.slice.map((row) => (
             <tr key={row.id}>
