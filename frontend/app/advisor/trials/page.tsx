@@ -134,7 +134,7 @@ export default function TrialsPage() {
             <label>联系方式<input value={form.phone} onChange={(event) => set("phone", event.target.value)} /></label>
             <label>家长联系方式<input value={form.parentPhone} onChange={(event) => set("parentPhone", event.target.value)} /></label>
             <label>是否已买课<select value={String(form.bought)} onChange={(event) => set("bought", event.target.value === "true") }><option value="false">否</option><option value="true">是</option></select></label>
-            <label>备注<input value={form.remark} onChange={(event) => set("remark", event.target.value)} placeholder="没买课的原因" /></label>
+            <label>备注<input value={form.remark} onChange={(event) => set("remark", event.target.value)} /></label>
             <label>计划报名时间<input type="date" value={form.plannedEnrollDate} onChange={(event) => set("plannedEnrollDate", event.target.value)} /></label>
           </div>
           <p><button type="submit">保存</button></p>

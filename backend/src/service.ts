@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import {
   assertCanAttend,
-  assertNotBoughtRemark,
   assertRole,
   isNewStudent,
   lessonBalance,
@@ -93,7 +92,6 @@ export async function listTeachers(store: Store, actor: Actor) {
 type TrialBody = Omit<Trial, "id" | "advisorId" | "createdAt" | "updatedAt" | "createdBy" | "updatedBy">;
 
 function trialInput(input: TrialBody): TrialBody {
-  assertNotBoughtRemark(Boolean(input.bought), input.remark ?? "");
   return {
     teacherId: Number(input.teacherId),
     courseTypeId: Number(input.courseTypeId),

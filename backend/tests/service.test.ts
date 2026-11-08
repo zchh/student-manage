@@ -27,9 +27,11 @@ describe("服务规格", () => {
     expect(user.role).toBe("advisor");
   });
 
-  it("SPEC-TRIAL-01 未买课没有原因时拒绝保存", async () => {
+  it("未买课可以不填备注", async () => {
     const { store, advisor } = await demoStore();
-    await expect(service.createTrial(store, advisor, { ...trial, remark: "" })).rejects.toMatchObject({ code: "SPEC-TRIAL-01" });
+    const created = await service.createTrial(store, advisor, { ...trial, remark: "" });
+    expect(created.bought).toBe(false);
+    expect(created.remark).toBe("");
   });
 
   it("SPEC-TRIAL-03 试听课程必须和教师一致", async () => {

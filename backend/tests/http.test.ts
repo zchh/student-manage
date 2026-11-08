@@ -62,7 +62,7 @@ describe("HTTP 权限", () => {
     expect(await store.sessions()).toHaveLength(0);
   });
 
-  it("SPEC-TRIAL-01 接口拒绝没有原因的未买课记录", async () => {
+  it("未买课可以不填备注", async () => {
     const { store } = await demoStore();
     const app = createApp(store);
     const token = await tokenFor(app, "advisor", "advisor123", "advisor");
@@ -82,7 +82,7 @@ describe("HTTP 权限", () => {
         remark: "",
         plannedEnrollDate: "",
       });
-    expect(response.status).toBe(400);
-    expect(response.body.code).toBe("SPEC-TRIAL-01");
+    expect(response.status).toBe(201);
+    expect(response.body.remark).toBe("");
   });
 });

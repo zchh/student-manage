@@ -1,13 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { assertCanAttend, assertNotBoughtRemark, isNewStudent, lessonBalance, SpecError } from "../src/domain/rules.js";
+import { assertCanAttend, isNewStudent, lessonBalance } from "../src/domain/rules.js";
 
 describe("课时与试听规则", () => {
-  it("SPEC-TRIAL-01 未买课必须填写原因", () => {
-    expect(() => assertNotBoughtRemark(false, "  ")).toThrowError(SpecError);
-    expect(() => assertNotBoughtRemark(false, "时间不合适")).not.toThrow();
-    expect(() => assertNotBoughtRemark(true, "")).not.toThrow();
-  });
-
   it("SPEC-HOUR-02 已到扣课时，未到不扣", () => {
     expect(lessonBalance(4, 1)).toMatchObject({ remaining: 3, completed: 1, low: false });
     expect(lessonBalance(4, 0)).toMatchObject({ remaining: 4, completed: 0 });

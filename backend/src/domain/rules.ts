@@ -21,12 +21,6 @@ export function assertRole(role: Role, allowed: Role): void {
   );
 }
 
-export function assertNotBoughtRemark(bought: boolean, remark: string): void {
-  if (!bought && remark.trim() === "") {
-    throw new SpecError("SPEC-TRIAL-01", "未买课必须填写原因");
-  }
-}
-
 export function lessonBalance(purchased: number, attended: number) {
   const remaining = purchased - attended;
   return {
