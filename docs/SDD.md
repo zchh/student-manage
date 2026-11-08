@@ -73,6 +73,7 @@ npm test
 | SPEC-HOUR-02 | 签到「已到」使剩余课时减 1。「未到」不减。 |
 | SPEC-HOUR-03 | 这次记为「已到」会让已到次数超过已购课时时，拒绝签到。 |
 | SPEC-HOUR-04 | 剩余课时为 1 或 2 时标记「快用完」。为 0 或大于 2 时不标记。续费就是再记一笔消费。 |
+| SPEC-HOUR-05 | 顾问在学生页续费时，学生当前剩余课时加上本次增加课时，不能超过该班状态为「待上课」的课时数。相等可以提交。未分班不能续费。提交后新增一条该班课程类型的消费记录。 |
 
 学生已分班时，列表上的课时按该班课程类型计算。未分班时，按全部课程合计。
 
@@ -131,6 +132,7 @@ npm test
 | PUT | `/api/trials/:id` | 顾问 |
 | GET/POST | `/api/students` | 顾问。查询参数 `keyword` |
 | DELETE | `/api/students/:id` | 顾问 |
+| POST | `/api/students/:id/renewals` | 顾问。体：`amount`、`hours`。续费，成功时新增消费记录。叠加后超过该班待上课时则拒绝 |
 | GET/POST | `/api/purchases` | 顾问。查询参数 `keyword` 匹配学生姓名 |
 | GET/POST | `/api/classes` | 顾问 |
 | POST | `/api/classes/:id/students` | 顾问。体：`studentId` |
@@ -153,7 +155,7 @@ npm test
 | 登录 | `/` | SPEC-AUTH-01、SPEC-AUTH-02 |
 | 试听课 | `/advisor/trials` | SPEC-TRIAL-01、SPEC-TRIAL-02、SPEC-TRIAL-03 |
 | 消费记录 | `/advisor/purchases` | SPEC-HOUR-01、SPEC-HOUR-04 |
-| 学生 | `/advisor/students` | SPEC-STUDENT-01、课时合计 |
+| 学生 | `/advisor/students` | SPEC-STUDENT-01、SPEC-HOUR-05、课时合计 |
 | 班级 | `/advisor/classes` | SPEC-CLASS-01、SPEC-CLASS-02、SPEC-CLASS-03 |
 | 班级课时 | `/teacher/sessions` | SPEC-SESSION-01、SPEC-SESSION-02、SPEC-SESSION-03 |
 | 班级学生 | `/teacher/students` | 只读，含课时与顾问。历史课时在 `/teacher/students/:id` |

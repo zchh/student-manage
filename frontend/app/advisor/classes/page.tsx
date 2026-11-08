@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Facts } from "@/components/Facts";
 import { Modal } from "@/components/Modal";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
@@ -22,6 +23,7 @@ export default function ClassesPage() {
   const [types, setTypes] = useState<Type[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [sessionClassName, setSessionClassName] = useState("");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ name: "", teacherId: 1, courseTypeId: 1 });
@@ -67,9 +69,11 @@ export default function ClassesPage() {
     }
   }
 
-  async function showSessions(id: number) {
+  async function showSessions(row: ClassRow) {
     setError("");
-    setSessions(await api<Session[]>(`/api/classes/${id}/sessions`));
+    const list = await api<Session[]>(`/api/classes/${row.id}/sessions`);
+    setSessionClassName(row.name);
+    setSessions(list);
   }
 
   return (
@@ -108,7 +112,7 @@ export default function ClassesPage() {
               <td>{row.teacherAvatar || "—"}</td><td>{row.teacherGender}</td><td>{row.studentCount}</td>
               <td>
                 <button className="ghost" onClick={() => router.push(`/advisor/students?classId=${row.id}`)}>学生信息</button>
-                <button className="ghost" onClick={() => showSessions(row.id)}>课时查看</button>
+                <button className="ghost" onClick={() => showSessions(row)}>课时查看</button>
               </td>
             </tr>
           ))}
@@ -118,6 +122,7 @@ export default function ClassesPage() {
       {sessions.length > 0 && (
         <div className="panel">
           <h2>课时</h2>
+          <Facts items={[["班级名称", sessionClassName]]} />
           <table>
             <thead><tr><th>周几</th><th>日期</th><th>时间段</th></tr></thead>
             <tbody>{sessionPager.slice.map((item) => <tr key={item.id}><td>{item.weekday}</td><td>{item.sessionDate}</td><td>{item.timeRange}</td></tr>)}</tbody>

@@ -244,13 +244,14 @@ export async function createStudent(
 
 export async function listStudents(store: Store, actor: Actor, keyword = "") {
   assertRole(actor.role, "advisor");
-  const [students, classes, members, teachers, links, advisors] = await Promise.all([
+  const [students, classes, members, teachers, links, advisors, types] = await Promise.all([
     store.students(),
     store.classes(),
     store.classStudents(),
     store.teachers(),
     store.links(),
     store.advisors(),
+    store.courseTypes(),
   ]);
   const text = keyword.trim();
   const rows = [];
@@ -265,6 +266,7 @@ export async function listStudents(store: Store, actor: Actor, keyword = "") {
       ...student,
       classId: classGroup?.id ?? null,
       className: classGroup?.name ?? "",
+      courseTypeName: types.find((item) => item.id === classGroup?.courseTypeId)?.name ?? "",
       teacherId: teacher?.id ?? null,
       teacherName: teacher?.name ?? "",
       advisorId: link?.advisorId ?? null,
@@ -327,6 +329,44 @@ export async function createPurchase(
     amount,
     courseTypeId: Number(input.courseTypeId),
     hours: input.hours,
+    advisorId: actor.id,
+    ...audit(store, actor),
+  });
+}
+
+export async function renewStudent(
+  store: Store,
+  actor: Actor,
+  studentId: number,
+  input: { amount: number; hours: number },
+) {
+  assertRole(actor.role, "advisor");
+  const amount = Number(input.amount);
+  if (!Number.isInteger(amount) || amount <= 0) {
+    throw new SpecError("SPEC-HOUR-01", "消费金额必须是正整数");
+  }
+  const hours = Number(input.hours);
+  if (!Number.isInteger(hours) || hours <= 0) {
+    throw new SpecError("SPEC-HOUR-01", "课时必须是正整数");
+  }
+  const student = (await store.students()).find((item) => item.id === studentId);
+  if (!student) throw new SpecError("SPEC-HOUR-05", "学生不存在", 404);
+  const membership = (await store.classStudents()).find((item) => item.studentId === studentId);
+  if (!membership) throw new SpecError("SPEC-HOUR-05", "学生未分班，不能续费");
+  const classGroup = await requireClass(store, membership.classId);
+  const balance = await hoursOf(store, studentId, classGroup.courseTypeId);
+  const classRemaining = (await store.sessions()).filter(
+    (item) => item.classId === classGroup.id && item.status === "待上课",
+  ).length;
+  const stacked = balance.remaining + hours;
+  if (stacked > classRemaining) {
+    throw new SpecError("SPEC-HOUR-05", `增加后剩余 ${stacked} 课时，超过班级剩余 ${classRemaining} 课时`);
+  }
+  return store.insertPurchase({
+    studentId: student.id,
+    amount,
+    courseTypeId: classGroup.courseTypeId,
+    hours,
     advisorId: actor.id,
     ...audit(store, actor),
   });

@@ -261,6 +261,46 @@ describe("服务规格", () => {
     ).rejects.toMatchObject({ code: "SPEC-HOUR-01" });
   });
 
+  it("SPEC-HOUR-05 续费叠加后不能超过班级待上课时，并增加消费记录", async () => {
+    const { store, advisor, teacher } = await demoStore();
+    const student = await service.createStudent(store, advisor, {
+      name: "小周", gender: "男", birthDate: "2016-03-03", grade: "三年级", phone: "1", parentPhone: "2",
+    });
+    await service.createPurchase(store, advisor, { studentId: student.id, amount: 200, courseTypeId: 1, hours: 1 });
+    const classGroup = await service.createClass(store, advisor, { name: "钢琴A", teacherId: 1, courseTypeId: 1 });
+    await service.assignStudent(store, advisor, classGroup.id, student.id);
+    const first = await service.createSession(store, teacher, classGroup.id, {
+      weekday: "周六", sessionDate: "2026-11-14", timeRange: "10:00-11:00", topic: "音阶", remark: "",
+    });
+    await service.createSession(store, teacher, classGroup.id, {
+      weekday: "周六", sessionDate: "2026-11-21", timeRange: "11:00-12:00", topic: "练习", remark: "",
+    });
+    await service.updateSession(store, teacher, first.id, { status: "教师请假" });
+    await expect(service.renewStudent(store, advisor, student.id, { amount: 500, hours: 1 })).rejects.toMatchObject({
+      code: "SPEC-HOUR-05",
+      message: "增加后剩余 2 课时，超过班级剩余 1 课时",
+    });
+    await service.updateSession(store, teacher, first.id, { status: "待上课" });
+    const purchase = await service.renewStudent(store, advisor, student.id, { amount: 500, hours: 1 });
+    expect(purchase).toMatchObject({ studentId: student.id, amount: 500, hours: 1, courseTypeId: 1, advisorId: advisor.id });
+    const row = (await service.listStudents(store, advisor, "小周")).find((item) => item.id === student.id);
+    expect(row).toMatchObject({ remainingHours: 2, courseTypeName: "钢琴", className: "钢琴A" });
+    const listed = await service.listPurchases(store, advisor, "小周");
+    expect(listed).toEqual(expect.arrayContaining([
+      expect.objectContaining({ amount: 500, hours: 1, courseTypeName: "钢琴" }),
+    ]));
+    await expect(service.renewStudent(store, teacher, student.id, { amount: 500, hours: 1 })).rejects.toMatchObject({
+      code: "SPEC-PERM-01",
+    });
+    const outsider = await service.createStudent(store, advisor, {
+      name: "未分班", gender: "女", birthDate: "2016-03-03", grade: "三年级", phone: "3", parentPhone: "4",
+    });
+    await expect(service.renewStudent(store, advisor, outsider.id, { amount: 500, hours: 1 })).rejects.toMatchObject({
+      code: "SPEC-HOUR-05",
+      message: "学生未分班，不能续费",
+    });
+  });
+
   it("SPEC-STUDENT-01 已分班的学生不能删除", async () => {
     const { store, advisor } = await demoStore();
     const student = await service.createStudent(store, advisor, {

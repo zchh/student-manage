@@ -111,6 +111,9 @@ export function createApp(store: Store) {
     await service.deleteStudent(store, req.actor!, Number(req.params.id));
     res.status(204).end();
   }));
+  app.post("/api/students/:id/renewals", asyncRoute(async (req, res) => {
+    res.status(201).json(await service.renewStudent(store, req.actor!, Number(req.params.id), req.body));
+  }));
   app.get("/api/purchases", asyncRoute(async (req, res) => {
     res.json(await service.listPurchases(store, req.actor!, String(req.query.keyword ?? "")));
   }));
