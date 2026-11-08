@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
 interface Option { id: number; name: string; courseTypeId?: number }
@@ -57,6 +58,7 @@ export default function TrialsPage() {
   const [editing, setEditing] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
+  const pager = usePager(rows);
 
   async function load() {
     const [list, teacherList, typeList] = await Promise.all([
@@ -120,7 +122,7 @@ export default function TrialsPage() {
           <tr>{["顾问编号","顾问姓名","教师编号","教师姓名","课程类型","试听时间段","学生姓名","性别","出生年月日","联系方式","家长联系方式","是否已买课","备注","计划报名时间","时间","操作"].map((item) => <th key={item}>{item}</th>)}</tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
+          {pager.slice.map((row) => (
             <tr key={row.id}>
               <td>{row.advisorId}</td><td>{row.advisorName}</td><td>{row.teacherId}</td><td>{row.teacherName}</td>
               <td>{row.courseTypeName}</td><td>{row.timeRange}</td><td>{row.studentName}</td><td>{row.gender}</td>
@@ -134,6 +136,7 @@ export default function TrialsPage() {
           ))}
         </tbody>
       </table>
+      <Pager {...pager} />
     </>
   );
 }

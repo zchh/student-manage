@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
 interface ClassRow { id: number; name: string; teacherId: number; teacherName: string }
@@ -17,6 +18,7 @@ export default function SessionsPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(empty);
   const [error, setError] = useState("");
+  const pager = usePager(rows);
 
   async function load(id = classId) {
     const list = await api<ClassRow[]>("/api/teacher/classes");
@@ -80,7 +82,7 @@ export default function SessionsPage() {
       <table>
         <thead><tr><th>周几</th><th>日期</th><th>时间段</th><th>主题</th><th>状态</th><th>操作</th></tr></thead>
         <tbody>
-          {rows.map((row) => (
+          {pager.slice.map((row) => (
             <tr key={row.id}>
               <td>{row.weekday}</td><td>{row.sessionDate}</td><td>{row.timeRange}</td><td>{row.topic}</td><td>{row.status}</td>
               <td>{row.status === "待上课" && <button className="ghost" onClick={() => leave(row.id)}>请假</button>}</td>
@@ -88,6 +90,7 @@ export default function SessionsPage() {
           ))}
         </tbody>
       </table>
+      <Pager {...pager} />
     </>
   );
 }

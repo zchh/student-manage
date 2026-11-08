@@ -39,3 +39,5 @@ th { background: #faf7f2; }
 .error { color: #8d3b32; }
 .login { max-width: 420px; margin: 10vh auto; }
 .tag { color: #8a5a12; font-weight: 600; }
+.pager { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; }
+.pager input { width: 72px; }

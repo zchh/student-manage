@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
 interface Note {
@@ -32,6 +33,8 @@ export default function TrialFollowUpPage() {
   const [history, setHistory] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
+  const visitPager = usePager(page?.visits ?? []);
+  const assistPager = usePager(page?.assists ?? []);
 
   async function load() {
     setPage(await api<FollowUps>(`/api/trials/${trialId}/follow-ups`));
@@ -108,6 +111,7 @@ export default function TrialFollowUpPage() {
         </form>
       )}
       {history && (
+        <>
         <table>
           <thead>
             <tr>
@@ -116,10 +120,10 @@ export default function TrialFollowUpPage() {
             </tr>
           </thead>
           <tbody>
-            {page?.assists.length === 0 && (
+            {assistPager.slice.length === 0 && (
               <tr><td colSpan={2}>暂无</td></tr>
             )}
-            {page?.assists.map((row) => (
+            {assistPager.slice.map((row) => (
               <tr key={row.id}>
                 <td>{time(row.createdAt)}</td>
                 <td className="pre">{row.content}</td>
@@ -127,6 +131,8 @@ export default function TrialFollowUpPage() {
             ))}
           </tbody>
         </table>
+        <Pager {...assistPager} />
+        </>
       )}
       <table>
         <thead>
@@ -137,7 +143,7 @@ export default function TrialFollowUpPage() {
           </tr>
         </thead>
         <tbody>
-          {page?.visits.map((row) => (
+          {visitPager.slice.map((row) => (
             <tr key={row.id}>
               <td>{time(row.createdAt)}</td>
               <td>{row.content}</td>
@@ -146,6 +152,7 @@ export default function TrialFollowUpPage() {
           ))}
         </tbody>
       </table>
+      <Pager {...visitPager} />
     </>
   );
 }

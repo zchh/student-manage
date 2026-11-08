@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
 interface Teacher { id: number; name: string }
@@ -22,6 +23,8 @@ export default function ClassesPage() {
   const [error, setError] = useState("");
   const [form, setForm] = useState({ name: "", teacherId: 1, courseTypeId: 1 });
   const [assign, setAssign] = useState({ classId: 0, studentId: 0 });
+  const pager = usePager(rows);
+  const sessionPager = usePager(sessions);
 
   async function load() {
     const [list, teacherList, typeList, studentList] = await Promise.all([
@@ -89,7 +92,7 @@ export default function ClassesPage() {
       <table>
         <thead><tr><th>班级名称</th><th>课程类型</th><th>教师编号</th><th>教师姓名</th><th>教师头像</th><th>教师性别</th><th>学生数量</th><th>操作</th></tr></thead>
         <tbody>
-          {rows.map((row) => (
+          {pager.slice.map((row) => (
             <tr key={row.id}>
               <td>{row.name}</td><td>{row.courseTypeName}</td><td>{row.teacherId}</td><td>{row.teacherName}</td>
               <td>{row.teacherAvatar || "—"}</td><td>{row.teacherGender}</td><td>{row.studentCount}</td>
@@ -98,13 +101,15 @@ export default function ClassesPage() {
           ))}
         </tbody>
       </table>
+      <Pager {...pager} />
       {sessions.length > 0 && (
         <div className="panel">
           <h2>课时</h2>
           <table>
             <thead><tr><th>周几</th><th>日期</th><th>时间段</th></tr></thead>
-            <tbody>{sessions.map((item) => <tr key={item.id}><td>{item.weekday}</td><td>{item.sessionDate}</td><td>{item.timeRange}</td></tr>)}</tbody>
+            <tbody>{sessionPager.slice.map((item) => <tr key={item.id}><td>{item.weekday}</td><td>{item.sessionDate}</td><td>{item.timeRange}</td></tr>)}</tbody>
           </table>
+          <Pager {...sessionPager} />
         </div>
       )}
     </>

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
 interface Student { id: number; name: string }
@@ -18,6 +19,7 @@ export default function PurchasesPage() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ studentId: 0, amount: 0, courseTypeId: 1, hours: 4 });
+  const pager = usePager(rows);
 
   async function load(text = keyword) {
     const [list, studentList, typeList] = await Promise.all([
@@ -69,11 +71,12 @@ export default function PurchasesPage() {
       <table>
         <thead><tr><th>学生姓名</th><th>顾问编号</th><th>顾问姓名</th><th>消费金额</th><th>课程类型</th><th>课时</th><th>时间</th></tr></thead>
         <tbody>
-          {rows.map((row) => (
+          {pager.slice.map((row) => (
             <tr key={row.id}><td>{row.studentName}</td><td>{row.advisorId}</td><td>{row.advisorName}</td><td>{row.amount}</td><td>{row.courseTypeName}</td><td>{row.hours}</td><td>{row.createdAt.slice(0, 16).replace("T", " ")}</td></tr>
           ))}
         </tbody>
       </table>
+      <Pager {...pager} />
     </>
   );
 }

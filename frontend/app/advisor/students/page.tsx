@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
 interface Student {
@@ -17,6 +18,7 @@ export default function StudentsPage() {
   const [form, setForm] = useState(empty);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
+  const pager = usePager(rows);
 
   async function load(text = keyword) {
     setRows(await api<Student[]>(`/api/students?keyword=${encodeURIComponent(text)}`));
@@ -73,7 +75,7 @@ export default function StudentsPage() {
       <table>
         <thead><tr><th>学生编号</th><th>学生姓名</th><th>性别</th><th>出生年月日</th><th>联系方式</th><th>家长联系方式</th><th>班级</th><th>教师编号</th><th>教师</th><th>已完成课时</th><th>剩余课时</th><th>操作</th></tr></thead>
         <tbody>
-          {rows.map((row) => (
+          {pager.slice.map((row) => (
             <tr key={row.id}>
               <td>{row.studentNo}</td><td>{row.name}</td><td>{row.gender}</td><td>{row.birthDate}</td>
               <td>{row.phone}</td><td>{row.parentPhone}</td><td>{row.className}</td><td>{row.teacherId ?? ""}</td>
@@ -84,6 +86,7 @@ export default function StudentsPage() {
           ))}
         </tbody>
       </table>
+      <Pager {...pager} />
     </>
   );
 }

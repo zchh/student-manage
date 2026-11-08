@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
 interface ClassRow { id: number; name: string; teacherId: number; teacherName: string; courseTypeName: string }
@@ -21,6 +22,8 @@ export default function AttendancePage() {
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [sessionId, setSessionId] = useState(0);
   const [error, setError] = useState("");
+  const sessionPager = usePager(sessions);
+  const studentPager = usePager(sheet?.students ?? []);
 
   async function loadClasses(id = 0) {
     const list = await api<ClassRow[]>("/api/teacher/classes");
@@ -79,10 +82,11 @@ export default function AttendancePage() {
       </div>
       {error && <p className="error">{error}</p>}
       {!sheet && (
+        <>
         <table>
           <thead><tr><th>周几</th><th>日期</th><th>课时</th><th>备注</th><th>操作</th></tr></thead>
           <tbody>
-            {sessions.map((row) => (
+            {sessionPager.slice.map((row) => (
               <tr key={row.id}>
                 <td>{row.weekday}</td><td>{row.sessionDate}</td><td>{row.timeRange}</td><td>{row.remark}</td>
                 <td><button onClick={() => openSheet(row.id).catch((reason) => setError(reason.message))}>签到</button></td>
@@ -90,6 +94,8 @@ export default function AttendancePage() {
             ))}
           </tbody>
         </table>
+        <Pager {...sessionPager} />
+        </>
       )}
       {sheet && (
         <form onSubmit={onSubmit}>
@@ -100,7 +106,7 @@ export default function AttendancePage() {
           <table>
             <thead><tr><th>学生姓名</th><th>学生编号</th><th>是否新生</th><th>是否已到</th><th>剩余课时</th><th>备注</th></tr></thead>
             <tbody>
-              {sheet.students.map((row) => (
+              {studentPager.slice.map((row) => (
                 <tr key={row.studentId}>
                   <td>{row.studentName}</td><td>{row.studentNo}</td><td>{row.isNew ? "是" : "否"}</td>
                   <td>
@@ -115,6 +121,7 @@ export default function AttendancePage() {
               ))}
             </tbody>
           </table>
+          <Pager {...studentPager} />
           <p><button type="submit">提交签到</button></p>
         </form>
       )}

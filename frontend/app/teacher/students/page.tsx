@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
 interface ClassRow { id: number; name: string }
@@ -14,6 +15,7 @@ export default function TeacherStudentsPage() {
   const [classId, setClassId] = useState(0);
   const [rows, setRows] = useState<Student[]>([]);
   const [error, setError] = useState("");
+  const pager = usePager(rows);
 
   async function load(id = classId) {
     const list = await api<ClassRow[]>("/api/teacher/classes");
@@ -36,7 +38,7 @@ export default function TeacherStudentsPage() {
       <table>
         <thead><tr><th>学生编号</th><th>学生姓名</th><th>性别</th><th>出生年月日</th><th>联系方式</th><th>家长联系方式</th><th>顾问编号</th><th>顾问姓名</th><th>已完成课时</th><th>剩余课时</th></tr></thead>
         <tbody>
-          {rows.map((row) => (
+          {pager.slice.map((row) => (
             <tr key={row.studentNo}>
               <td>{row.studentNo}</td><td>{row.name}</td><td>{row.gender}</td><td>{row.birthDate}</td>
               <td>{row.phone}</td><td>{row.parentPhone}</td><td>{row.advisorId}</td><td>{row.advisorName}</td>
@@ -45,6 +47,7 @@ export default function TeacherStudentsPage() {
           ))}
         </tbody>
       </table>
+      <Pager {...pager} />
     </>
   );
 }
