@@ -96,8 +96,8 @@ export default function ClassesPage() {
         <div className="grid">
           <label>学生<select value={assign.studentId} onChange={(event) => setAssign({ ...assign, studentId: Number(event.target.value) })}><option value={0}>选择学生</option>{assignable.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
           <label>班级<select value={assign.classId} onChange={(event) => setAssign({ ...assign, classId: Number(event.target.value) })}><option value={0}>选择班级</option>{rows.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <div className="field-action"><button type="submit">分入班级</button></div>
         </div>
-        <button type="submit">分入班级</button>
       </form>
       <table>
         <thead><tr><th>班级名称</th><th>课程类型</th><th>教师编号</th><th>教师姓名</th><th>教师头像</th><th>教师性别</th><th>学生数量</th><th>操作</th></tr></thead>

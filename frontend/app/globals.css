@@ -33,6 +33,7 @@ main { padding: 24px; overflow-x: auto; }
 .modal { width: min(420px, 100%); margin: auto; background: white; border: 1px solid #e2dacb; border-radius: 10px; padding: 16px; }
 .modal.wide { width: min(880px, 100%); }
 .grid { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); gap: 10px; }
+.field-action { display: flex; align-items: flex-end; }
 label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 input, select, textarea { border: 1px solid #d5cbbd; border-radius: 6px; padding: 8px; background: white; }
 textarea { min-height: 88px; width: 100%; }
