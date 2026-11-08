@@ -14,8 +14,12 @@ export default function TeacherStudentsPage() {
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [classId, setClassId] = useState(0);
   const [rows, setRows] = useState<Student[]>([]);
+  const [keyword, setKeyword] = useState("");
+  const [query, setQuery] = useState("");
   const [error, setError] = useState("");
-  const pager = usePager(rows);
+  const text = query.trim();
+  const visible = text ? rows.filter((item) => item.name.includes(text) || item.studentNo.includes(text)) : rows;
+  const pager = usePager(visible);
 
   async function load(id = classId) {
     const list = await api<ClassRow[]>("/api/teacher/classes");
@@ -23,16 +27,26 @@ export default function TeacherStudentsPage() {
     const current = id || list[0]?.id || 0;
     setClassId(current);
     if (current) setRows(await api<Student[]>(`/api/teacher/classes/${current}/students`));
+    pager.setPage(1);
   }
   useEffect(() => { load(0).catch((reason) => setError(reason.message)); }, []);
+
+  function search() {
+    setQuery(keyword);
+    pager.setPage(1);
+  }
 
   return (
     <>
       <div className="top">
         <h1>班级学生</h1>
-        <select value={classId} onChange={(event) => load(Number(event.target.value)).catch((reason) => setError(reason.message))}>
-          {classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-        </select>
+        <div className="actions">
+          <select value={classId} onChange={(event) => load(Number(event.target.value)).catch((reason) => setError(reason.message))}>
+            {classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </select>
+          <input placeholder="姓名或学号" aria-label="姓名或学号" value={keyword} onChange={(event) => setKeyword(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") search(); }} />
+          <button className="ghost" onClick={search}>查询</button>
+        </div>
       </div>
       {error && <p className="error">{error}</p>}
       <table>
