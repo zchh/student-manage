@@ -37,7 +37,7 @@ export function Shell({ role, children }: { role: User["role"]; children: React.
         <strong>{user.name}</strong>
         <p>{role === "advisor" ? "顾问" : "教师"}</p>
         {links.map(([href, label]) => (
-          <a className={path === href ? "active" : ""} key={href} href={href}>{label}</a>
+          <a className={path === href || path.startsWith(`${href}/`) ? "active" : ""} key={href} href={href}>{label}</a>
         ))}
         <button className="ghost" style={{ marginTop: 20, color: "white", borderColor: "white" }} onClick={logout}>退出</button>
       </nav>

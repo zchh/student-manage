@@ -75,7 +75,24 @@ export interface Trial extends Audit {
   parentPhone: string;
   bought: boolean;
   remark: string;
+  opinion: string;
   plannedEnrollDate: string;
+}
+
+export interface TrialVisit {
+  id: number;
+  trialId: number;
+  content: string;
+  createdAt: string;
+  createdBy: number | null;
+}
+
+export interface TrialAssist {
+  id: number;
+  trialId: number;
+  content: string;
+  createdAt: string;
+  createdBy: number | null;
 }
 
 export interface ClassGroup extends Audit {

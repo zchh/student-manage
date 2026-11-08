@@ -14,6 +14,8 @@ import type {
   SessionStatus,
   Trial,
 } from "./domain/types.js";
+import { completeWithBailian } from "./ai/bailian.js";
+import { renderTrialAssistPrompt } from "./ai/prompt.js";
 import type { Store } from "./store/types.js";
 
 function audit(store: Store, actor: Actor | null) {
@@ -88,16 +90,27 @@ export async function listTeachers(store: Store, actor: Actor) {
   }));
 }
 
-function trialInput(input: Omit<Trial, "id" | "advisorId" | "createdAt" | "updatedAt" | "createdBy" | "updatedBy">) {
-  assertNotBoughtRemark(input.bought, input.remark);
-  return input;
+type TrialBody = Omit<Trial, "id" | "advisorId" | "createdAt" | "updatedAt" | "createdBy" | "updatedBy">;
+
+function trialInput(input: TrialBody): TrialBody {
+  assertNotBoughtRemark(Boolean(input.bought), input.remark ?? "");
+  return {
+    teacherId: Number(input.teacherId),
+    courseTypeId: Number(input.courseTypeId),
+    timeRange: input.timeRange ?? "",
+    studentName: input.studentName ?? "",
+    gender: input.gender ?? "",
+    birthDate: input.birthDate ?? "",
+    phone: input.phone ?? "",
+    parentPhone: input.parentPhone ?? "",
+    bought: Boolean(input.bought),
+    remark: input.remark ?? "",
+    opinion: input.opinion ?? "",
+    plannedEnrollDate: input.plannedEnrollDate ?? "",
+  };
 }
 
-export async function createTrial(
-  store: Store,
-  actor: Actor,
-  input: Omit<Trial, "id" | "advisorId" | "createdAt" | "updatedAt" | "createdBy" | "updatedBy">,
-) {
+export async function createTrial(store: Store, actor: Actor, input: TrialBody) {
   assertRole(actor.role, "advisor");
   const body = trialInput(input);
   const teacher = (await store.teachers()).find((item) => item.id === body.teacherId);
@@ -111,7 +124,7 @@ export async function updateTrial(
   store: Store,
   actor: Actor,
   id: number,
-  input: Omit<Trial, "id" | "advisorId" | "createdAt" | "updatedAt" | "createdBy" | "updatedBy">,
+  input: TrialBody,
 ) {
   assertRole(actor.role, "advisor");
   const current = (await store.trials()).find((item) => item.id === id);
@@ -142,6 +155,79 @@ export async function listTrials(store: Store, actor: Actor) {
     teacherName: teachers.find((item) => item.id === trial.teacherId)?.name ?? "",
     courseTypeName: types.find((item) => item.id === trial.courseTypeId)?.name ?? "",
   }));
+}
+
+async function requireTrial(store: Store, id: number) {
+  const trial = (await store.trials()).find((item) => item.id === id);
+  if (!trial) throw new SpecError("SPEC-TRIAL-02", "试听课不存在", 404);
+  return trial;
+}
+
+function requireText(value: string | undefined, code: string, message: string) {
+  const content = value?.trim() ?? "";
+  if (!content) throw new SpecError(code, message);
+  return content;
+}
+
+export async function listTrialFollowUps(store: Store, actor: Actor, trialId: number) {
+  assertRole(actor.role, "advisor");
+  const trial = await requireTrial(store, trialId);
+  const [types, visits, assists] = await Promise.all([
+    store.courseTypes(),
+    store.trialVisits(),
+    store.trialAssists(),
+  ]);
+  const history = assists.filter((item) => item.trialId === trialId).sort((a, b) => b.id - a.id);
+  return {
+    studentName: trial.studentName,
+    courseTypeName: types.find((item) => item.id === trial.courseTypeId)?.name ?? "",
+    latestAssist: history[0]?.content ?? "",
+    assists: history,
+    visits: visits.filter((item) => item.trialId === trialId),
+  };
+}
+
+export async function createTrialVisit(store: Store, actor: Actor, trialId: number, input: { content: string }) {
+  assertRole(actor.role, "advisor");
+  await requireTrial(store, trialId);
+  const content = requireText(input.content, "SPEC-TRIAL-04", "回访内容不能为空");
+  return store.insertTrialVisit({ trialId, content, createdAt: store.now(), createdBy: actor.id });
+}
+
+export async function deleteTrialVisit(store: Store, actor: Actor, trialId: number, visitId: number) {
+  assertRole(actor.role, "advisor");
+  const visit = (await store.trialVisits()).find((item) => item.id === visitId && item.trialId === trialId);
+  if (!visit) throw new SpecError("SPEC-TRIAL-04", "回访记录不存在", 404);
+  await store.deleteTrialVisit(visitId);
+}
+
+export async function generateTrialAssist(
+  store: Store,
+  actor: Actor,
+  trialId: number,
+  complete: (prompt: string) => Promise<string> = completeWithBailian,
+) {
+  assertRole(actor.role, "advisor");
+  const trial = await requireTrial(store, trialId);
+  if (trial.bought) throw new SpecError("SPEC-TRIAL-05", "已买课，无需生成回访建议");
+  const visits = (await store.trialVisits()).filter((item) => item.trialId === trialId);
+  if (visits.length === 0) throw new SpecError("SPEC-TRIAL-05", "请先登记回访内容");
+  const courseType = (await store.courseTypes()).find((item) => item.id === trial.courseTypeId);
+  const prompt = renderTrialAssistPrompt({
+    studentName: trial.studentName,
+    gender: trial.gender,
+    birthDate: trial.birthDate,
+    phone: trial.phone,
+    parentPhone: trial.parentPhone,
+    courseType: courseType?.name ?? "",
+    timeRange: trial.timeRange,
+    remark: trial.remark,
+    opinion: trial.opinion,
+    plannedEnrollDate: trial.plannedEnrollDate,
+    visits: visits.map((item) => `- ${item.createdAt.slice(0, 16).replace("T", " ")} ${item.content}`).join("\n"),
+  });
+  const content = requireText(await complete(prompt), "SPEC-TRIAL-05", "AI助力信息不能为空");
+  return store.insertTrialAssist({ trialId, content, createdAt: store.now(), createdBy: actor.id });
 }
 
 export async function createStudent(

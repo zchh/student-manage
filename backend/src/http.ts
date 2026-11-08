@@ -69,6 +69,19 @@ export function createApp(store: Store) {
   app.put("/api/trials/:id", asyncRoute(async (req, res) => {
     res.json(await service.updateTrial(store, req.actor!, Number(req.params.id), req.body));
   }));
+  app.get("/api/trials/:id/follow-ups", asyncRoute(async (req, res) => {
+    res.json(await service.listTrialFollowUps(store, req.actor!, Number(req.params.id)));
+  }));
+  app.post("/api/trials/:id/visits", asyncRoute(async (req, res) => {
+    res.status(201).json(await service.createTrialVisit(store, req.actor!, Number(req.params.id), req.body));
+  }));
+  app.delete("/api/trials/:id/visits/:visitId", asyncRoute(async (req, res) => {
+    await service.deleteTrialVisit(store, req.actor!, Number(req.params.id), Number(req.params.visitId));
+    res.status(204).end();
+  }));
+  app.post("/api/trials/:id/assists", asyncRoute(async (req, res) => {
+    res.status(201).json(await service.generateTrialAssist(store, req.actor!, Number(req.params.id)));
+  }));
   app.get("/api/students", asyncRoute(async (req, res) => {
     res.json(await service.listStudents(store, req.actor!, String(req.query.keyword ?? "")));
   }));

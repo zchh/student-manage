@@ -11,6 +11,8 @@ import type {
   Student,
   Teacher,
   Trial,
+  TrialAssist,
+  TrialVisit,
 } from "../domain/types.js";
 import type { Store } from "../store/types.js";
 
@@ -100,6 +102,7 @@ CREATE TABLE IF NOT EXISTS trials (
   parent_phone VARCHAR(32) NOT NULL,
   bought TINYINT NOT NULL,
   remark VARCHAR(255) NOT NULL,
+  opinion TEXT NULL,
   planned_enroll_date VARCHAR(20) NOT NULL,
   created_at VARCHAR(40) NOT NULL,
   updated_at VARCHAR(40) NOT NULL,
@@ -152,6 +155,20 @@ CREATE TABLE IF NOT EXISTS attendances (
   created_by INT NULL,
   updated_by INT NULL
 );
+CREATE TABLE IF NOT EXISTS trial_visits (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  trial_id INT NOT NULL,
+  content TEXT NOT NULL,
+  created_at VARCHAR(40) NOT NULL,
+  created_by INT NULL
+);
+CREATE TABLE IF NOT EXISTS trial_assists (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  trial_id INT NOT NULL,
+  content TEXT NOT NULL,
+  created_at VARCHAR(40) NOT NULL,
+  created_by INT NULL
+);
 `;
 
 type Row = Record<string, unknown>;
@@ -185,6 +202,11 @@ export async function createMysqlStore(): Promise<Store> {
   for (const statement of schema.split(";").map((item) => item.trim()).filter(Boolean)) {
     await pool.query(statement);
   }
+  try {
+    await pool.query("ALTER TABLE trials ADD COLUMN opinion TEXT NULL");
+  } catch (error) {
+    if ((error as { code?: string }).code !== "ER_DUP_FIELDNAME") throw error;
+  }
   const q = async (sql: string, params: unknown[] = []) => (await pool.query(sql, params))[0] as Row[];
 
   const mapCourse = (row: Row): CourseType => ({ id: num(row.id), name: text(row.name), ...audit(row) });
@@ -213,7 +235,15 @@ export async function createMysqlStore(): Promise<Store> {
     courseTypeId: num(row.course_type_id), timeRange: text(row.time_range), studentName: text(row.student_name),
     gender: text(row.gender), birthDate: text(row.birth_date), phone: text(row.phone),
     parentPhone: text(row.parent_phone), bought: Boolean(row.bought), remark: text(row.remark),
-    plannedEnrollDate: text(row.planned_enroll_date), ...audit(row),
+    opinion: text(row.opinion), plannedEnrollDate: text(row.planned_enroll_date), ...audit(row),
+  });
+  const mapVisit = (row: Row): TrialVisit => ({
+    id: num(row.id), trialId: num(row.trial_id), content: text(row.content),
+    createdAt: text(row.created_at), createdBy: row.created_by == null ? null : num(row.created_by),
+  });
+  const mapAssist = (row: Row): TrialAssist => ({
+    id: num(row.id), trialId: num(row.trial_id), content: text(row.content),
+    createdAt: text(row.created_at), createdBy: row.created_by == null ? null : num(row.created_by),
   });
   const mapClass = (row: Row): ClassGroup => ({
     id: num(row.id), name: text(row.name), teacherId: num(row.teacher_id),
@@ -242,6 +272,8 @@ export async function createMysqlStore(): Promise<Store> {
     links: async () => (await q("SELECT * FROM advisor_students")).map(mapLink),
     purchases: async () => (await q("SELECT * FROM purchases ORDER BY id")).map(mapPurchase),
     trials: async () => (await q("SELECT * FROM trials ORDER BY id")).map(mapTrial),
+    trialVisits: async () => (await q("SELECT * FROM trial_visits ORDER BY id")).map(mapVisit),
+    trialAssists: async () => (await q("SELECT * FROM trial_assists ORDER BY id")).map(mapAssist),
     classes: async () => (await q("SELECT * FROM classes ORDER BY id")).map(mapClass),
     classStudents: async () => (await q("SELECT * FROM class_students")).map(mapMember),
     sessions: async () => (await q("SELECT * FROM class_sessions ORDER BY id")).map(mapSession),
@@ -293,18 +325,35 @@ export async function createMysqlStore(): Promise<Store> {
     },
     insertTrial: async (row) => {
       const [result] = await pool.query(
-        `INSERT INTO trials (advisor_id, teacher_id, course_type_id, time_range, student_name, gender, birth_date, phone, parent_phone, bought, remark, planned_enroll_date, created_at, updated_at, created_by, updated_by)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [row.advisorId, row.teacherId, row.courseTypeId, row.timeRange, row.studentName, row.gender, row.birthDate, row.phone, row.parentPhone, row.bought ? 1 : 0, row.remark, row.plannedEnrollDate, row.createdAt, row.updatedAt, row.createdBy, row.updatedBy],
+        `INSERT INTO trials (advisor_id, teacher_id, course_type_id, time_range, student_name, gender, birth_date, phone, parent_phone, bought, remark, opinion, planned_enroll_date, created_at, updated_at, created_by, updated_by)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [row.advisorId, row.teacherId, row.courseTypeId, row.timeRange, row.studentName, row.gender, row.birthDate, row.phone, row.parentPhone, row.bought ? 1 : 0, row.remark, row.opinion, row.plannedEnrollDate, row.createdAt, row.updatedAt, row.createdBy, row.updatedBy],
       );
       return { ...row, id: num((result as { insertId: number }).insertId) };
     },
     updateTrial: async (row) => {
       await pool.query(
-        `UPDATE trials SET teacher_id=?, course_type_id=?, time_range=?, student_name=?, gender=?, birth_date=?, phone=?, parent_phone=?, bought=?, remark=?, planned_enroll_date=?, updated_at=?, updated_by=? WHERE id=?`,
-        [row.teacherId, row.courseTypeId, row.timeRange, row.studentName, row.gender, row.birthDate, row.phone, row.parentPhone, row.bought ? 1 : 0, row.remark, row.plannedEnrollDate, row.updatedAt, row.updatedBy, row.id],
+        `UPDATE trials SET teacher_id=?, course_type_id=?, time_range=?, student_name=?, gender=?, birth_date=?, phone=?, parent_phone=?, bought=?, remark=?, opinion=?, planned_enroll_date=?, updated_at=?, updated_by=? WHERE id=?`,
+        [row.teacherId, row.courseTypeId, row.timeRange, row.studentName, row.gender, row.birthDate, row.phone, row.parentPhone, row.bought ? 1 : 0, row.remark, row.opinion, row.plannedEnrollDate, row.updatedAt, row.updatedBy, row.id],
       );
       return row;
+    },
+    insertTrialVisit: async (row) => {
+      const [result] = await pool.query(
+        `INSERT INTO trial_visits (trial_id, content, created_at, created_by) VALUES (?,?,?,?)`,
+        [row.trialId, row.content, row.createdAt, row.createdBy],
+      );
+      return { ...row, id: num((result as { insertId: number }).insertId) };
+    },
+    deleteTrialVisit: async (id) => {
+      await pool.query("DELETE FROM trial_visits WHERE id=?", [id]);
+    },
+    insertTrialAssist: async (row) => {
+      const [result] = await pool.query(
+        `INSERT INTO trial_assists (trial_id, content, created_at, created_by) VALUES (?,?,?,?)`,
+        [row.trialId, row.content, row.createdAt, row.createdBy],
+      );
+      return { ...row, id: num((result as { insertId: number }).insertId) };
     },
     insertClass: async (row) => {
       const [result] = await pool.query(

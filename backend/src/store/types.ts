@@ -10,6 +10,8 @@ import type {
   Student,
   Teacher,
   Trial,
+  TrialAssist,
+  TrialVisit,
 } from "../domain/types.js";
 
 export interface Store {
@@ -21,6 +23,8 @@ export interface Store {
   links(): Promise<AdvisorLink[]>;
   purchases(): Promise<Purchase[]>;
   trials(): Promise<Trial[]>;
+  trialVisits(): Promise<TrialVisit[]>;
+  trialAssists(): Promise<TrialAssist[]>;
   classes(): Promise<ClassGroup[]>;
   classStudents(): Promise<ClassStudent[]>;
   sessions(): Promise<Session[]>;
@@ -33,6 +37,9 @@ export interface Store {
   insertPurchase(row: Omit<Purchase, "id">): Promise<Purchase>;
   insertTrial(row: Omit<Trial, "id">): Promise<Trial>;
   updateTrial(row: Trial): Promise<Trial>;
+  insertTrialVisit(row: Omit<TrialVisit, "id">): Promise<TrialVisit>;
+  deleteTrialVisit(id: number): Promise<void>;
+  insertTrialAssist(row: Omit<TrialAssist, "id">): Promise<TrialAssist>;
   insertClass(row: Omit<ClassGroup, "id">): Promise<ClassGroup>;
   insertClassStudent(row: ClassStudent): Promise<void>;
   insertSession(row: Omit<Session, "id">): Promise<Session>;

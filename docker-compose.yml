@@ -17,6 +17,8 @@ services:
       MYSQL_DATABASE: student_manage
       JWT_SECRET: change-me
       PORT: 4000
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_MODEL: ${DASHSCOPE_MODEL:-qwen-plus}
     ports:
       - "4000:4000"
     depends_on:

@@ -10,6 +10,8 @@ import type {
   Student,
   Teacher,
   Trial,
+  TrialAssist,
+  TrialVisit,
 } from "../domain/types.js";
 import type { Store } from "./types.js";
 
@@ -23,6 +25,8 @@ export function createMemoryStore(): Store {
   const links: AdvisorLink[] = [];
   const purchases: Purchase[] = [];
   const trials: Trial[] = [];
+  const trialVisits: TrialVisit[] = [];
+  const trialAssists: TrialAssist[] = [];
   const classes: ClassGroup[] = [];
   const classStudents: ClassStudent[] = [];
   const sessions: Session[] = [];
@@ -43,6 +47,8 @@ export function createMemoryStore(): Store {
     links: async () => links.map((row) => ({ ...row })),
     purchases: async () => purchases.map((row) => ({ ...row })),
     trials: async () => trials.map((row) => ({ ...row })),
+    trialVisits: async () => trialVisits.map((row) => ({ ...row })),
+    trialAssists: async () => trialAssists.map((row) => ({ ...row })),
     classes: async () => classes.map((row) => ({ ...row })),
     classStudents: async () => classStudents.map((row) => ({ ...row })),
     sessions: async () => sessions.map((row) => ({ ...row })),
@@ -61,6 +67,12 @@ export function createMemoryStore(): Store {
       trials[index] = { ...row };
       return { ...row };
     },
+    insertTrialVisit: async (row) => push(trialVisits, row),
+    deleteTrialVisit: async (id) => {
+      const index = trialVisits.findIndex((item) => item.id === id);
+      if (index >= 0) trialVisits.splice(index, 1);
+    },
+    insertTrialAssist: async (row) => push(trialAssists, row),
     insertClass: async (row) => push(classes, row),
     insertClassStudent: async (row) => {
       classStudents.push({ ...row });

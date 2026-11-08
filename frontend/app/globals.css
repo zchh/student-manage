@@ -17,16 +17,22 @@ button {
 }
 button.ghost { background: transparent; color: #1f6b5a; border: 1px solid #1f6b5a; }
 button.danger { background: #8d3b32; }
+button:disabled { opacity: 0.6; cursor: wait; }
+.pre { white-space: pre-wrap; line-height: 1.5; }
 .shell { display: grid; grid-template-columns: 200px 1fr; min-height: 100vh; }
 nav { background: #24312e; color: #f4f0e8; padding: 20px 14px; }
 nav a { display: block; padding: 8px 10px; border-radius: 6px; }
 nav a.active, nav a:hover { background: #34524b; }
-main { padding: 24px; }
+main { padding: 24px; overflow-x: auto; }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
 .panel { background: white; border: 1px solid #e2dacb; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
 .grid { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); gap: 10px; }
 label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
-input, select { border: 1px solid #d5cbbd; border-radius: 6px; padding: 8px; background: white; }
+input, select, textarea { border: 1px solid #d5cbbd; border-radius: 6px; padding: 8px; background: white; }
+textarea { min-height: 88px; width: 100%; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.actions button { margin-right: 0; }
+td button + button { margin-left: 8px; }
 table { width: 100%; border-collapse: collapse; background: white; font-size: 14px; }
 th, td { border-bottom: 1px solid #eee6da; padding: 8px; text-align: left; vertical-align: top; }
 th { background: #faf7f2; }

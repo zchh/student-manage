@@ -14,6 +14,7 @@ const trial = {
   parentPhone: "13900000001",
   bought: false,
   remark: "再考虑一下",
+  opinion: "节奏感不错",
   plannedEnrollDate: "",
 };
 
@@ -42,6 +43,53 @@ describe("服务规格", () => {
     const created = await service.createTrial(store, advisor, trial);
     const updated = await service.updateTrial(store, advisor, created.id, { ...trial, bought: true, remark: "" });
     expect(updated.bought).toBe(true);
+    expect(updated.opinion).toBe("节奏感不错");
+  });
+
+  it("顾问可以登记回访和 AI 助力，并删除回访", async () => {
+    const { store, advisor, teacher } = await demoStore();
+    const created = await service.createTrial(store, advisor, trial);
+    await expect(service.createTrialVisit(store, teacher, created.id, { content: "电话未接" })).rejects.toMatchObject({
+      code: "SPEC-PERM-01",
+    });
+    await expect(service.createTrialVisit(store, advisor, created.id, { content: "  " })).rejects.toMatchObject({
+      code: "SPEC-TRIAL-04",
+    });
+    await expect(service.generateTrialAssist(store, advisor, created.id, async () => "不会调用")).rejects.toMatchObject({
+      code: "SPEC-TRIAL-05",
+    });
+    await service.createTrialVisit(store, advisor, created.id, { content: "家长下周再定" });
+    const saved = await service.generateTrialAssist(store, advisor, created.id, async (prompt) => {
+      expect(prompt).toContain("小周");
+      expect(prompt).toContain("钢琴");
+      expect(prompt).toContain("家长下周再定");
+      expect(prompt).toContain("家长沟通建议");
+      return "建议强调试听反馈";
+    });
+    expect(saved.content).toBe("建议强调试听反馈");
+    const page = await service.listTrialFollowUps(store, advisor, created.id);
+    expect(page.studentName).toBe("小周");
+    expect(page.courseTypeName).toBe("钢琴");
+    expect(page.latestAssist).toBe("建议强调试听反馈");
+    expect(page.visits.map((item) => item.content)).toEqual(["家长下周再定"]);
+    expect(page.assists.map((item) => item.content)).toEqual(["建议强调试听反馈"]);
+    await service.deleteTrialVisit(store, advisor, created.id, page.visits[0].id);
+    const after = await service.listTrialFollowUps(store, advisor, created.id);
+    expect(after.visits).toHaveLength(0);
+    expect(after.assists).toHaveLength(1);
+  });
+
+  it("已买课或教师不能生成回访建议", async () => {
+    const { store, advisor, teacher } = await demoStore();
+    const created = await service.createTrial(store, advisor, { ...trial, bought: true, remark: "" });
+    await service.createTrialVisit(store, advisor, created.id, { content: "已经报名" });
+    await expect(service.generateTrialAssist(store, teacher, created.id, async () => "不会调用")).rejects.toMatchObject({
+      code: "SPEC-PERM-01",
+    });
+    await expect(service.generateTrialAssist(store, advisor, created.id, async () => "不会调用")).rejects.toMatchObject({
+      code: "SPEC-TRIAL-05",
+      message: "已买课，无需生成回访建议",
+    });
   });
 
   it("SPEC-HOUR-01 课时必须是正整数", async () => {

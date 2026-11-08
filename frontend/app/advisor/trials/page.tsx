@@ -20,14 +20,32 @@ interface Trial {
   parentPhone: string;
   bought: boolean;
   remark: string;
+  opinion: string;
   plannedEnrollDate: string;
   createdAt: string;
 }
 
 const empty = {
   teacherId: 1, courseTypeId: 1, timeRange: "", studentName: "", gender: "男", birthDate: "",
-  phone: "", parentPhone: "", bought: false, remark: "", plannedEnrollDate: "",
+  phone: "", parentPhone: "", bought: false, remark: "", opinion: "", plannedEnrollDate: "",
 };
+
+function toForm(row: Trial): typeof empty {
+  return {
+    teacherId: row.teacherId,
+    courseTypeId: row.courseTypeId,
+    timeRange: row.timeRange,
+    studentName: row.studentName,
+    gender: row.gender,
+    birthDate: row.birthDate,
+    phone: row.phone,
+    parentPhone: row.parentPhone,
+    bought: row.bought,
+    remark: row.remark,
+    opinion: row.opinion ?? "",
+    plannedEnrollDate: row.plannedEnrollDate,
+  };
+}
 
 export default function TrialsPage() {
   const [rows, setRows] = useState<Trial[]>([]);
@@ -89,6 +107,7 @@ export default function TrialsPage() {
             <label>家长联系方式<input value={form.parentPhone} onChange={(event) => set("parentPhone", event.target.value)} /></label>
             <label>是否已买课<select value={String(form.bought)} onChange={(event) => set("bought", event.target.value === "true") }><option value="false">否</option><option value="true">是</option></select></label>
             <label>备注<input value={form.remark} onChange={(event) => set("remark", event.target.value)} placeholder="没买课的原因" /></label>
+            <label>意见<input value={form.opinion} onChange={(event) => set("opinion", event.target.value)} /></label>
             <label>计划报名时间<input type="date" value={form.plannedEnrollDate} onChange={(event) => set("plannedEnrollDate", event.target.value)} /></label>
           </div>
           <p><button type="submit">保存</button></p>
@@ -105,7 +124,10 @@ export default function TrialsPage() {
               <td>{row.courseTypeName}</td><td>{row.timeRange}</td><td>{row.studentName}</td><td>{row.gender}</td>
               <td>{row.birthDate}</td><td>{row.phone}</td><td>{row.parentPhone}</td><td>{row.bought ? "是" : "否"}</td>
               <td>{row.remark}</td><td>{row.plannedEnrollDate}</td><td>{row.createdAt.slice(0, 16).replace("T", " ")}</td>
-              <td><button className="ghost" onClick={() => { setEditing(row.id); setForm({ ...row }); setOpen(true); }}>编辑</button></td>
+              <td>
+                <button className="ghost" onClick={() => { setEditing(row.id); setForm(toForm(row)); setOpen(true); }}>编辑</button>
+                <button className="ghost" onClick={() => { location.href = `/advisor/trials/${row.id}`; }}>回访记录</button>
+              </td>
             </tr>
           ))}
         </tbody>
