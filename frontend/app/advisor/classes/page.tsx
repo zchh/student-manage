@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 
 interface Teacher { id: number; name: string }
 interface Type { id: number; name: string }
-interface Student { id: number; name: string }
+interface Student { id: number; name: string; classId: number | null; completedHours: number; remainingHours: number }
 interface ClassRow {
   id: number; name: string; courseTypeName: string; teacherId: number; teacherName: string;
   teacherAvatar: string; teacherGender: string; studentCount: number;
@@ -25,6 +25,7 @@ export default function ClassesPage() {
   const [assign, setAssign] = useState({ classId: 0, studentId: 0 });
   const pager = usePager(rows);
   const sessionPager = usePager(sessions);
+  const assignable = students.filter((item) => item.classId == null && item.completedHours + item.remainingHours > 0);
 
   async function load() {
     const [list, teacherList, typeList, studentList] = await Promise.all([
@@ -84,8 +85,8 @@ export default function ClassesPage() {
       )}
       <form className="panel" onSubmit={place}>
         <div className="grid">
+          <label>学生<select value={assign.studentId} onChange={(event) => setAssign({ ...assign, studentId: Number(event.target.value) })}><option value={0}>选择学生</option>{assignable.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
           <label>班级<select value={assign.classId} onChange={(event) => setAssign({ ...assign, classId: Number(event.target.value) })}><option value={0}>选择班级</option>{rows.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-          <label>学生<select value={assign.studentId} onChange={(event) => setAssign({ ...assign, studentId: Number(event.target.value) })}><option value={0}>选择学生</option>{students.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
         </div>
         <button type="submit">分入班级</button>
       </form>
