@@ -346,6 +346,7 @@ export async function listPurchases(store: Store, actor: Actor, keyword = "") {
       return {
         ...purchase,
         studentName: student?.name ?? "",
+        phone: student?.phone ?? "",
         advisorName: advisors.find((item) => item.id === purchase.advisorId)?.name ?? "",
         courseTypeName: types.find((item) => item.id === purchase.courseTypeId)?.name ?? "",
       };

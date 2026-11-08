@@ -10,7 +10,7 @@ interface TrialOption {
   courseTypeId: number; courseTypeName: string;
 }
 interface Purchase {
-  id: number; studentName: string; advisorId: number; advisorName: string;
+  id: number; studentName: string; phone: string; advisorId: number; advisorName: string;
   amount: number; courseTypeName: string; hours: number; createdAt: string;
 }
 
@@ -97,10 +97,10 @@ export default function PurchasesPage() {
         </Modal>
       )}
       <table>
-        <thead><tr><th>学生姓名</th><th>顾问编号</th><th>顾问姓名</th><th>消费金额</th><th>课程类型</th><th>课时</th><th>时间</th></tr></thead>
+        <thead><tr><th>学生姓名</th><th>学生联系方式</th><th>顾问编号</th><th>顾问姓名</th><th>消费金额</th><th>课程类型</th><th>课时</th><th>时间</th></tr></thead>
         <tbody>
           {pager.slice.map((row) => (
-            <tr key={row.id}><td>{row.studentName}</td><td>{row.advisorId}</td><td>{row.advisorName}</td><td>{row.amount}</td><td>{row.courseTypeName}</td><td>{row.hours}</td><td>{row.createdAt.slice(0, 16).replace("T", " ")}</td></tr>
+            <tr key={row.id}><td>{row.studentName}</td><td>{row.phone}</td><td>{row.advisorId}</td><td>{row.advisorName}</td><td>{row.amount}</td><td>{row.courseTypeName}</td><td>{row.hours}</td><td>{row.createdAt.slice(0, 16).replace("T", " ")}</td></tr>
           ))}
         </tbody>
       </table>

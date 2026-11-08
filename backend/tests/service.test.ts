@@ -252,6 +252,8 @@ describe("服务规格", () => {
     expect(purchase.amount).toBe(800);
     const students = await service.listStudents(store, advisor);
     expect(students.some((item) => item.name === "小陈" && item.phone === "13800138000")).toBe(true);
+    const listed = await service.listPurchases(store, advisor);
+    expect(listed.find((item) => item.studentId === purchase.studentId)).toMatchObject({ studentName: "小陈", phone: "13800138000" });
     const trials = await service.listTrials(store, advisor);
     expect(trials.find((item) => item.id === created.id)?.bought).toBe(true);
     await expect(

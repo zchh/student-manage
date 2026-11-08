@@ -88,16 +88,6 @@ export default function SessionsPage() {
     }
   }
 
-  async function leave(id: number) {
-    setError("");
-    try {
-      await api(`/api/teacher/sessions/${id}`, { method: "PATCH", body: JSON.stringify({ status: "教师请假" }) });
-      await load(classId);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "修改失败");
-    }
-  }
-
   async function remove(id: number) {
     setError("");
     try {
@@ -169,7 +159,6 @@ export default function SessionsPage() {
               <td>{row.weekday}</td><td>{row.sessionDate}</td><td>{row.timeRange}</td><td>{row.topic}</td><td>{row.status}</td><td>{row.remark}</td>
               <td>
                 <button className="ghost" onClick={() => { setError(""); setEditing(row.id); setForm(toForm(row)); setOpen(true); }}>编辑</button>
-                {row.status === "待上课" && <button className="ghost" onClick={() => leave(row.id)}>请假</button>}
                 <button className="danger" onClick={() => remove(row.id)}>删除</button>
               </td>
             </tr>
