@@ -4,8 +4,10 @@ import { FormEvent, useEffect, useState } from "react";
 import { Pager, usePager } from "@/components/Pager";
 import { api } from "@/lib/api";
 
-interface Type { id: number; name: string }
-interface TrialOption { id: number; studentName: string; phone: string; bought: boolean; courseTypeId: number }
+interface TrialOption {
+  id: number; studentName: string; phone: string; bought: boolean;
+  courseTypeId: number; courseTypeName: string;
+}
 interface Purchase {
   id: number; studentName: string; advisorId: number; advisorName: string;
   amount: number; courseTypeName: string; hours: number; createdAt: string;
@@ -18,23 +20,21 @@ function trialLabel(item: TrialOption) {
 export default function PurchasesPage() {
   const [rows, setRows] = useState<Purchase[]>([]);
   const [trials, setTrials] = useState<TrialOption[]>([]);
-  const [types, setTypes] = useState<Type[]>([]);
   const [keyword, setKeyword] = useState("");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ trialId: 0, amount: 0, courseTypeId: 1, hours: 4 });
+  const [form, setForm] = useState({ trialId: 0, amount: "", hours: 4 });
   const pager = usePager(rows);
   const unpaid = trials.filter((item) => !item.bought);
+  const selected = unpaid.find((item) => item.id === form.trialId);
 
   async function load(text = keyword) {
-    const [list, trialList, typeList] = await Promise.all([
+    const [list, trialList] = await Promise.all([
       api<Purchase[]>(`/api/purchases?keyword=${encodeURIComponent(text)}`),
       api<TrialOption[]>("/api/trials"),
-      api<Type[]>("/api/course-types"),
     ]);
     setRows(list);
     setTrials(trialList);
-    setTypes(typeList);
   }
   useEffect(() => { load("").catch((reason) => setError(reason.message)); }, []);
 
@@ -42,11 +42,19 @@ export default function PurchasesPage() {
     event.preventDefault();
     setError("");
     try {
-      if (!form.trialId) {
+      if (!form.trialId || !selected) {
         setError("没有未买课的试听学生");
         return;
       }
-      await api("/api/purchases", { method: "POST", body: JSON.stringify(form) });
+      const amount = Number(form.amount);
+      if (!Number.isInteger(amount) || amount <= 0) {
+        setError("消费金额必须是正整数");
+        return;
+      }
+      await api("/api/purchases", {
+        method: "POST",
+        body: JSON.stringify({ trialId: selected.id, amount, courseTypeId: selected.courseTypeId, hours: form.hours }),
+      });
       setOpen(false);
       await load();
     } catch (reason) {
@@ -63,7 +71,7 @@ export default function PurchasesPage() {
           <button className="ghost" onClick={() => load().catch((reason) => setError(reason.message))}>查询</button>
           <button onClick={() => {
             const first = unpaid[0];
-            setForm({ trialId: first?.id ?? 0, amount: 0, courseTypeId: first?.courseTypeId ?? types[0]?.id ?? 1, hours: 4 });
+            setForm({ trialId: first?.id ?? 0, amount: "", hours: 4 });
             setOpen(true);
           }}>新增</button>
         </div>
@@ -72,13 +80,9 @@ export default function PurchasesPage() {
       {open && (
         <form className="panel" onSubmit={onSubmit}>
           <div className="grid">
-            <label>学生<select value={form.trialId} onChange={(event) => {
-              const trialId = Number(event.target.value);
-              const trial = unpaid.find((item) => item.id === trialId);
-              setForm({ ...form, trialId, courseTypeId: trial?.courseTypeId ?? form.courseTypeId });
-            }}>{unpaid.map((item) => <option key={item.id} value={item.id}>{trialLabel(item)}</option>)}</select></label>
-            <label>消费金额<input type="number" value={form.amount} onChange={(event) => setForm({ ...form, amount: Number(event.target.value) })} /></label>
-            <label>课程类型<select value={form.courseTypeId} onChange={(event) => setForm({ ...form, courseTypeId: Number(event.target.value) })}>{types.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+            <label>学生<select value={form.trialId} onChange={(event) => setForm({ ...form, trialId: Number(event.target.value) })}>{unpaid.map((item) => <option key={item.id} value={item.id}>{trialLabel(item)}</option>)}</select></label>
+            <label>消费金额<input value={form.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} /></label>
+            <label>课程类型<input value={selected?.courseTypeName ?? ""} readOnly /></label>
             <label>课时<input type="number" value={form.hours} onChange={(event) => setForm({ ...form, hours: Number(event.target.value) })} /></label>
           </div>
           <button type="submit">保存</button>

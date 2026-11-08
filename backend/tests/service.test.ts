@@ -168,8 +168,13 @@ describe("服务规格", () => {
   it("未买课的试听学生可以登记消费，并变为已买课", async () => {
     const { store, advisor } = await demoStore();
     const created = await service.createTrial(store, advisor, { ...trial, studentName: "小陈", phone: "13800138000" });
-    const purchase = await service.createPurchase(store, advisor, { trialId: created.id, amount: 800, courseTypeId: 1, hours: 4 });
+    await expect(
+      service.createPurchase(store, advisor, { trialId: created.id, amount: 1.5, courseTypeId: 2, hours: 4 }),
+    ).rejects.toMatchObject({ code: "SPEC-HOUR-01" });
+    const purchase = await service.createPurchase(store, advisor, { trialId: created.id, amount: 800, courseTypeId: 2, hours: 4 });
     expect(purchase.studentId).toBeGreaterThan(0);
+    expect(purchase.courseTypeId).toBe(created.courseTypeId);
+    expect(purchase.amount).toBe(800);
     const students = await service.listStudents(store, advisor);
     expect(students.some((item) => item.name === "小陈" && item.phone === "13800138000")).toBe(true);
     const trials = await service.listTrials(store, advisor);

@@ -291,6 +291,10 @@ export async function createPurchase(
   input: { studentId?: number; trialId?: number; amount: number; courseTypeId: number; hours: number },
 ) {
   assertRole(actor.role, "advisor");
+  const amount = Number(input.amount);
+  if (!Number.isInteger(amount) || amount <= 0) {
+    throw new SpecError("SPEC-HOUR-01", "消费金额必须是正整数");
+  }
   if (!Number.isInteger(input.hours) || input.hours <= 0) {
     throw new SpecError("SPEC-HOUR-01", "课时必须是正整数");
   }
@@ -307,8 +311,8 @@ export async function createPurchase(
     });
     const purchase = await store.insertPurchase({
       studentId: student.id,
-      amount: input.amount,
-      courseTypeId: Number(input.courseTypeId),
+      amount,
+      courseTypeId: trial.courseTypeId,
       hours: input.hours,
       advisorId: actor.id,
       ...audit(store, actor),
@@ -320,7 +324,7 @@ export async function createPurchase(
   if (!student) throw new SpecError("SPEC-HOUR-01", "学生不存在", 404);
   return store.insertPurchase({
     studentId: student.id,
-    amount: input.amount,
+    amount,
     courseTypeId: Number(input.courseTypeId),
     hours: input.hours,
     advisorId: actor.id,
